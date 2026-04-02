@@ -30,8 +30,8 @@ Gaps Detected:
 
 | Business Actor | System Role | Permissions / Access Level |
 |---|---|---|
-| Ban tổ chức (BTC) | `organizer` | Gửi đánh giá cho sponsor; Xem đánh giá mà mình nhận được |
-| Doanh nghiệp | `sponsor` | Gửi đánh giá cho organizer; Xem đánh giá mà mình nhận được |
+| Tài khoản đại diện Ban tổ chức (BTC) | `organizer` | Gửi đánh giá cho sponsor; Xem đánh giá mà mình nhận được |
+| Tài khoản đại diện doanh nghiệp | `sponsor` | Gửi đánh giá cho organizer; Xem đánh giá mà mình nhận được |
 | Hệ thống | `system` | Kiểm tra điều kiện đánh giá, tính điểm tổng hợp, kiểm duyệt nội dung |
 
 ---

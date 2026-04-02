@@ -8,16 +8,19 @@ Scope:            Quản lý toàn bộ vòng đời của hồ sơ tài trợ s
 System Boundary:
   IN:             Tạo, chỉnh sửa, xác thực, phát hành và quản lý trạng thái hồ sơ tài trợ;
                   Quản lý media (banner/thumbnail); Định nghĩa gói tài trợ và quyền lợi nhà tài trợ.
-  OUT:            Quản lý tài khoản người dùng (tồn tại sẵn); Tìm kiếm và khám phá sự kiện (SF-02);
+  OUT:            Quản lý tài khoản tổ chức (tồn tại sẵn); Tìm kiếm và khám phá sự kiện (SF-02);
                   Quy trình gửi lời mời tài trợ (SF-03).
 Assumptions:
   - [ASSUMED] BTC đã được xác thực và có tài khoản hợp lệ trên hệ thống trước khi tạo hồ sơ.
+  - [ASSUMED] Mỗi tổ chức chỉ có một tài khoản đại diện trên nền tảng; hệ thống không quản lý
+    thành viên nội bộ, tài khoản con, hoặc phân quyền theo nhiều người dùng trong cùng tổ chức.
+  - [ASSUMED] Một tài khoản BTC có thể sở hữu nhiều hồ sơ tài trợ cho các sự kiện khác nhau đồng thời.
   - [ASSUMED] Hệ thống hỗ trợ upload ảnh với các định dạng phổ biến (JPEG, PNG, WebP) và giới hạn dung lượng.
   - [ASSUMED] Hồ sơ tài trợ cần đạt trạng thái "Đã phát hành" để hiển thị cho doanh nghiệp tìm kiếm.
 Gaps Detected:
-  - Quy trình gốc không nêu rõ BTC có thể có nhiều hồ sơ cùng lúc hay không → giả định ĐƯỢC PHÉP.
-  - Không nêu quy trình xóa/hủy hồ sơ đã phát hành → cần bổ sung luồng hủy phát hành.
-  - Không nêu rõ ai có quyền chỉnh sửa hồ sơ trong BTC (cá nhân hay cả nhóm) → giả định người tạo và admin BTC.
+  - Cần làm rõ hồ sơ đã phát hành chỉ được hủy phát hành khi chưa bắt đầu thương thảo
+    với bất kỳ lời mời tài trợ nào.
+  - Cần làm rõ quyền sở hữu hồ sơ thuộc về tài khoản tổ chức đại diện, không phải tập hợp tài khoản thành viên.
 ```
 
 ---
@@ -26,8 +29,8 @@ Gaps Detected:
 
 | Business Actor | System Role | Permissions / Access Level |
 |---|---|---|
-| Ban tổ chức (BTC) — Câu lạc bộ, đội nhóm sinh viên | `organizer` | Tạo, chỉnh sửa, xóa bản nháp, phát hành, hủy phát hành hồ sơ tài trợ |
-| Doanh nghiệp | `sponsor` | Xem hồ sơ tài trợ đã phát hành (chỉ đọc) |
+| Tài khoản đại diện của Ban tổ chức (BTC) | `organizer` | Tạo, chỉnh sửa, xóa bản nháp, phát hành, hủy phát hành nhiều hồ sơ tài trợ cho các sự kiện khác nhau |
+| Tài khoản đại diện của doanh nghiệp | `sponsor` | Xem hồ sơ tài trợ đã phát hành (chỉ đọc) |
 | Hệ thống | `system` | Xác thực dữ liệu, chuyển trạng thái, ghi log, lập chỉ mục tìm kiếm |
 
 ---
@@ -254,24 +257,29 @@ Priority:      MUST
 ID:            FR-0109
 Name:          Hủy phát hành và ẩn hồ sơ tài trợ
 Description:   Hệ thống SHALL cho phép organizer hủy phát hành một hồ sơ tài trợ đang ở trạng thái
-               PUBLISHED, chuyển về trạng thái DRAFT. Hệ thống SHALL xóa hồ sơ khỏi chỉ mục tìm kiếm
-               và thông báo cho các doanh nghiệp đã bookmark hồ sơ này (nếu có).
-               Hệ thống SHALL ngăn hủy phát hành nếu hồ sơ có lời mời tài trợ đang PENDING (BR-0109).
+               PUBLISHED theo điều kiện ở BR-0109. Khi hủy thành công, hệ thống SHALL chuyển hồ sơ
+               về trạng thái DRAFT và xóa hồ sơ khỏi chỉ mục tìm kiếm. Các thông báo liên quan
+               PHẢI được xử lý theo BR-0110.
 Classification: SYSTEM-SUPPORTED
 Actor:         Organizer
 Trigger:       Organizer nhấn "Hủy phát hành"
 Inputs:        proposal_id
-Outputs:       status = DRAFT, unpublished_at (timestamp)
-Business Rules: BR-0109
+Outputs:       status = DRAFT, unpublished_at (timestamp), notification_events[]
+Business Rules: BR-0109, BR-0110
 Acceptance Criteria:
-  Given   hồ sơ tài trợ ở trạng thái PUBLISHED và không có lời mời PENDING
+  Given   hồ sơ tài trợ ở trạng thái PUBLISHED và chưa có Deal nào liên kết từ các lời mời tài trợ
   When    organizer nhấn "Hủy phát hành"
   Then    hệ thống SHALL chuyển trạng thái về DRAFT
   And     hệ thống SHALL xóa hồ sơ khỏi kết quả tìm kiếm
 
-  Given   hồ sơ tài trợ có 2 lời mời tài trợ đang PENDING
+  Given   hồ sơ tài trợ có lời mời tài trợ đã gửi (SENT/PENDING) nhưng chưa có Deal liên kết
   When    organizer nhấn "Hủy phát hành"
-  Then    hệ thống SHALL từ chối với thông báo "Không thể hủy phát hành khi còn lời mời đang chờ xử lý"
+  Then    hệ thống SHALL gửi thông báo phản hồi cho bên gửi lời mời
+  And     nội dung thông báo SHALL nêu rõ hồ sơ đã hủy phát hành và lời mời không còn hiệu lực
+
+  Given   hồ sơ tài trợ đã có ít nhất một Deal liên kết (đã bắt đầu thương thảo)
+  When    organizer nhấn "Hủy phát hành"
+  Then    hệ thống SHALL từ chối với thông báo "Không thể hủy phát hành hồ sơ đã bắt đầu thương thảo"
 Priority:      SHOULD
 ```
 
@@ -329,10 +337,18 @@ Source:      Quy trình gốc — Bước 1 (toàn bộ)
 Type:        Validation
 
 ID:          BR-0109
-Rule:        Hồ sơ tài trợ KHÔNG THỂ hủy phát hành nếu có lời mời tài trợ đang ở trạng thái PENDING
-             liên kết với hồ sơ này.
-Source:      [INFERRED — đảm bảo tính nhất quán dữ liệu giữa SF-01 và SF-03]
+Rule:        Hồ sơ tài trợ KHÔNG THỂ hủy phát hành nếu đã có ít nhất một Deal liên kết
+             được tạo từ lời mời tài trợ đã chấp nhận (đã bắt đầu thương thảo).
+Source:      [INFERRED — đảm bảo tính nhất quán với trạng thái thương thảo ở SF-04]
 Type:        Routing
+
+ID:          BR-0110
+Rule:        Khi hủy phát hành hồ sơ thành công, hệ thống PHẢI gửi thông báo phản hồi:
+             (1) cho các doanh nghiệp đã bookmark hồ sơ (nếu có),
+             (2) cho bên gửi các lời mời tài trợ liên kết còn ở trạng thái SENT/PENDING và chưa tạo Deal.
+             Nội dung thông báo PHẢI nêu rõ hồ sơ đã hủy phát hành và lời mời không còn hiệu lực.
+Source:      [INFERRED — đảm bảo các bên liên quan nhận được phản hồi trạng thái hồ sơ]
+Type:        Routing + Notification
 ```
 
 ---
@@ -407,4 +423,4 @@ Relationships:
 | 1. Gói tài trợ | SYSTEM-SUPPORTED | FR-0106 | BR-0106 | SponsorshipPackage |
 | 1. Lợi ích cho nhà tài trợ | SYSTEM-SUPPORTED | FR-0107 | BR-0107 | PackageBenefit |
 | 1. Phát hành hồ sơ | SYSTEM-SUPPORTED | FR-0108 | BR-0108 | SponsorshipProposal |
-| [INFERRED] Hủy phát hành | SYSTEM-SUPPORTED | FR-0109 | BR-0109 | SponsorshipProposal |
+| [INFERRED] Hủy phát hành | SYSTEM-SUPPORTED | FR-0109 | BR-0109, BR-0110 | SponsorshipProposal |

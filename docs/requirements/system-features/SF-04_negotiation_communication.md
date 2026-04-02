@@ -5,23 +5,27 @@
 ```
 Scope:            Cung cấp các công cụ trao đổi và thương thảo giữa BTC và doanh nghiệp sau khi
                   lời mời tài trợ được chấp nhận. Bao gồm nhắn tin theo ngữ cảnh thương vụ,
-                  đặt lịch họp, ghi nhận kết quả họp, chia sẻ file đính kèm, và theo dõi tiến trình
-                  thương thảo cho đến khi hai bên đồng thuận.
+                  đặt lịch họp, ghi nhận kết quả họp theo dạng notebook minh bạch, chia sẻ file
+                  đính kèm, và theo dõi tiến trình thương thảo cho đến khi hai bên đồng thuận.
 System Boundary:
   IN:             Nhắn tin trao đổi trong deal context; Chia sẻ file đính kèm; Đặt lịch họp;
-                  Ghi nhận kết quả họp; Theo dõi trạng thái thương thảo;
-                  Xác nhận đồng thuận hai chiều để tiến đến ký kết.
+                  Ghi nhận kết quả họp dưới dạng notebook; Theo dõi trạng thái thương thảo;
+                  Xác nhận đồng thuận hai chiều để tiến đến ký kết;
+                  Hủy bỏ thương thảo khi chưa đồng thuận cuối cùng.
   OUT:            Gửi lời mời tài trợ (SF-03 — deal đã được tạo);
-                  Soạn thảo và ký kết hợp đồng (SF-05 — bắt đầu sau đồng thuận).
+                  Soạn thảo và ký kết hợp đồng (SF-05 — bắt đầu sau đồng thuận);
+                  Giao diện video call / họp trực tuyến trong nền tảng.
 Assumptions:
   - [ASSUMED] Deal/Negotiation context được tạo tự động khi lời mời được chấp nhận (SF-03, FR-0303).
   - [ASSUMED] Nhắn tin hỗ trợ real-time (WebSocket hoặc tương đương).
   - [ASSUMED] File đính kèm hỗ trợ các định dạng phổ biến (PDF, DOCX, XLSX, JPEG, PNG) với giới hạn 10MB/file.
   - [ASSUMED] Hệ thống đặt lịch họp ghi nhận thông tin cuộc họp nhưng không tích hợp lịch bên ngoài (Google Calendar, v.v.) ở phiên bản đầu.
+  - [ASSUMED] Hệ thống không cung cấp giao diện video call; meeting online chỉ được ghi nhận như một lịch hẹn có link/địa điểm tham chiếu bên ngoài.
 Gaps Detected:
   - Quy trình gốc không nêu rõ cơ chế xác nhận đồng thuận → cần bổ sung mutual confirmation flow.
   - Không nêu giới hạn thời gian cho giai đoạn thương thảo → cần bổ sung SLA hoặc nhắc nhở.
   - Không nêu rõ ai có thể tham gia thương thảo trong nhóm BTC (toàn bộ hay chỉ đại diện).
+  - Cần khẳng định hệ thống không hỗ trợ giao diện thực hiện video call hay sinh nội dung cuộc họp từ video.
 ```
 
 ---
@@ -30,8 +34,8 @@ Gaps Detected:
 
 | Business Actor | System Role | Permissions / Access Level |
 |---|---|---|
-| Ban tổ chức (BTC) | `organizer` | Nhắn tin, gửi file, đặt lịch họp, ghi nhận kết quả, xác nhận đồng thuận |
-| Doanh nghiệp | `sponsor` | Nhắn tin, gửi file, phản hồi lịch họp, ghi nhận kết quả, xác nhận đồng thuận |
+| Tài khoản đại diện Ban tổ chức (BTC) | `organizer` | Nhắn tin, gửi file, đặt lịch họp, ghi nhận kết quả, xác nhận đồng thuận |
+| Tài khoản đại diện doanh nghiệp | `sponsor` | Nhắn tin, gửi file, phản hồi lịch họp, ghi nhận kết quả, xác nhận đồng thuận |
 | Hệ thống | `system` | Gửi thông báo tin nhắn mới, nhắc nhở lịch họp, xử lý trạng thái deal |
 
 ---
@@ -104,8 +108,8 @@ ID:            FR-0403
 Name:          Tạo lịch họp thương thảo
 Description:   Hệ thống SHALL cho phép một bên đề xuất lịch họp/meeting bao gồm: ngày giờ,
                thời lượng dự kiến, chủ đề, và ghi chú. Bên còn lại có thể chấp nhận,
-               từ chối, hoặc đề xuất thời gian khác. Hệ thống SHALL gửi thông báo nhắc nhở
-               trước giờ họp.
+               từ chối, hoặc đề xuất thời gian khác. Hệ thống SHALL chỉ đóng vai trò
+               ghi nhận lịch hẹn và gửi nhắc nhở; hệ thống không tổ chức hoặc host cuộc gọi.
 Classification: SYSTEM-SUPPORTED
 Actor:         Organizer hoặc Sponsor (đề xuất), đối tác (phản hồi)
 Trigger:       Actor nhấn "Đặt lịch họp" trong trang thương thảo
@@ -166,7 +170,8 @@ ID:            FR-0405
 Name:          Lưu ghi chú và kết quả cuộc họp
 Description:   Hệ thống SHALL cho phép cả hai bên ghi nhận kết quả sau cuộc họp bao gồm:
                tóm tắt nội dung, các quyết định đã thống nhất, và các action items tiếp theo.
-               Ghi chú này được lưu trong deal context để tham khảo khi soạn hợp đồng.
+               Ghi chú này được lưu trong deal context theo dạng notebook chung để tham khảo
+               khi soạn hợp đồng; hệ thống không tạo nội dung tự động từ video meeting.
 Classification: SYSTEM-SUPPORTED
 Actor:         Organizer, Sponsor
 Trigger:       Actor nhấn "Ghi nhận kết quả" sau cuộc họp hoặc trong trang chi tiết meeting
@@ -187,7 +192,7 @@ Priority:      SHOULD
 ```
 ID:            FR-0406
 Name:          Xác nhận đồng thuận sẵn sàng ký kết hợp đồng
-Description:   Hệ thống SHALL yêu cầu CÁCH hai bên (organizer VÀ sponsor) xác nhận đồng thuận
+Description:   Hệ thống SHALL yêu cầu CẢ HAI bên (organizer VÀ sponsor) xác nhận đồng thuận
                trước khi cho phép chuyển sang giai đoạn soạn thảo hợp đồng (SF-05).
                Mỗi bên nhấn "Xác nhận sẵn sàng". Khi CẢ HAI bên đã xác nhận,
                hệ thống SHALL chuyển deal sang trạng thái AGREED và mở khóa tính năng

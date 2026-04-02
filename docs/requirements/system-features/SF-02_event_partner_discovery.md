@@ -7,7 +7,7 @@ Scope:            Cung cấp khả năng tìm kiếm và khám phá hai chiều 
                   phù hợp để tài trợ, và BTC tìm kiếm doanh nghiệp phù hợp để mời tài trợ.
 System Boundary:
   IN:             Tìm kiếm, lọc, sắp xếp hồ sơ sự kiện và hồ sơ doanh nghiệp;
-                  Xem chi tiết hồ sơ; Lưu/bookmark hồ sơ quan tâm.
+                  Xem chi tiết hồ sơ; Lưu/bookmark hồ sơ quan tâm; Xem danh mục "Gợi ý" tự động.
   OUT:            Tạo hồ sơ tài trợ sự kiện (SF-01); Tạo hồ sơ doanh nghiệp (feature riêng, đã tồn tại);
                   Gửi lời mời tài trợ (SF-03).
 Assumptions:
@@ -17,7 +17,7 @@ Assumptions:
   - [ASSUMED] Hệ thống lập chỉ mục tìm kiếm toàn văn (full-text search) cho các trường văn bản.
 Gaps Detected:
   - Quy trình gốc không nêu rõ tiêu chí sắp xếp kết quả tìm kiếm → cần bổ sung logic xếp hạng.
-  - Không đề cập tính năng gợi ý/đề xuất tự động → flag dưới dạng automation opportunity.
+  - Cần bổ sung danh mục "Gợi ý" để hệ thống tự động đề xuất sự kiện hoặc doanh nghiệp phù hợp.
 ```
 
 ---
@@ -26,8 +26,8 @@ Gaps Detected:
 
 | Business Actor | System Role | Permissions / Access Level |
 |---|---|---|
-| Doanh nghiệp — Nhà tài trợ tiềm năng | `sponsor` | Tìm kiếm sự kiện, xem chi tiết hồ sơ tài trợ đã phát hành, bookmark sự kiện |
-| Ban tổ chức (BTC) | `organizer` | Tìm kiếm doanh nghiệp, xem chi tiết hồ sơ doanh nghiệp, bookmark doanh nghiệp |
+| Tài khoản đại diện doanh nghiệp — Nhà tài trợ tiềm năng | `sponsor` | Tìm kiếm sự kiện, xem chi tiết hồ sơ tài trợ đã phát hành, bookmark sự kiện |
+| Tài khoản đại diện Ban tổ chức (BTC) | `organizer` | Tìm kiếm doanh nghiệp, xem chi tiết hồ sơ doanh nghiệp, bookmark doanh nghiệp |
 | Hệ thống | `system` | Lập chỉ mục, xếp hạng kết quả, ghi log tìm kiếm |
 
 ---
@@ -176,6 +176,34 @@ Acceptance Criteria:
 Priority:      SHOULD
 ```
 
+### FR-0206: Xem danh mục gợi ý tự động
+
+```
+ID:            FR-0206
+Name:          Hiển thị danh mục gợi ý phù hợp theo ngữ cảnh
+Description:   Hệ thống SHALL hiển thị danh mục "Gợi ý" cho sponsor và organizer dựa trên hồ
+               sơ đã có, lịch sử tìm kiếm, bookmark, và mức độ tương tác gần đây. Danh mục này
+               SHALL tự động làm mới khi dữ liệu đầu vào thay đổi và ưu tiên các kết quả phù hợp
+               nhất theo vai trò của actor.
+Classification: FULLY AUTOMATED
+Actor:         Sponsor, Organizer
+Trigger:       Actor mở tab hoặc trang "Gợi ý" trong SF-02
+Inputs:        actor_id, actor_role, context_type (enum: EVENT | BUSINESS)
+Outputs:       recommendations[]: { target_id, target_type, title, reason, relevance_score },
+               refreshed_at (timestamp)
+Business Rules: BR-0206
+Acceptance Criteria:
+  Given   sponsor đã từng bookmark và tìm kiếm các sự kiện về công nghệ
+  When    sponsor mở tab "Gợi ý"
+  Then    hệ thống SHALL hiển thị danh sách sự kiện được đề xuất
+  And     hệ thống SHALL ưu tiên các sự kiện phù hợp với lịch sử tương tác gần đây
+
+  Given   organizer mở tab "Gợi ý"
+  When    hệ thống tính danh sách đề xuất
+  Then    hệ thống SHALL hiển thị các doanh nghiệp phù hợp để mời tài trợ
+Priority:      MUST
+```
+
 ---
 
 ## Business Rules
@@ -212,6 +240,14 @@ Rule:        Mỗi actor chỉ có thể bookmark một hồ sơ MỘT LẦN (kh
              Bookmark hồ sơ bị hủy phát hành SHALL được giữ lại nhưng đánh dấu "không khả dụng".
 Source:      [INFERRED — trải nghiệm người dùng]
 Type:        Validation
+
+ID:          BR-0206
+Rule:        Danh mục "Gợi ý" SHALL được tạo tự động dựa trên hồ sơ hiện có, lịch sử tìm kiếm,
+             bookmark, và hành vi tương tác gần đây của actor.
+             Kết quả đề xuất PHẢI được lọc theo vai trò: sponsor nhận gợi ý sự kiện,
+             organizer nhận gợi ý doanh nghiệp.
+Source:      [INFERRED — cập nhật yêu cầu gợi ý tự động]
+Type:        Recommendation
 ```
 
 ---
@@ -248,16 +284,7 @@ Constraints:
 | 2.2 BTC chủ động tìm kiếm DN | SYSTEM-SUPPORTED | FR-0202 | BR-0201, BR-0203 | BusinessProfile |
 | 2.2 BTC xem chi tiết hồ sơ DN | SYSTEM-SUPPORTED | FR-0204 | BR-0204 | BusinessProfile |
 | [INFERRED] Lưu hồ sơ quan tâm | SYSTEM-SUPPORTED | FR-0205 | BR-0205 | Bookmark |
+| [INFERRED] Gợi ý tự động | FULLY AUTOMATED | FR-0206 | BR-0206 | Recommendation |
 
 ---
 
-## Automation Opportunities
-
-```
-⚡ AUTOMATION OPPORTUNITY: Đề xuất tự động (Recommendation Engine)
-   Thay vì sponsor/organizer phải tìm kiếm thủ công, hệ thống có thể tự động gợi ý
-   sự kiện/doanh nghiệp phù hợp dựa trên hồ sơ, lịch sử tài trợ, và hành vi tìm kiếm.
-   Classification: FULLY AUTOMATED
-   Rationale: Tăng tỷ lệ kết nối thành công, giảm thời gian tìm kiếm.
-   Priority: COULD (phase 2)
-```

@@ -29,8 +29,8 @@ Gaps Detected:
 
 | Business Actor | System Role | Permissions / Access Level |
 |---|---|---|
-| Doanh nghiệp | `sponsor` | Ghi nhận hoàn thành nghĩa vụ tài trợ (chuyển tiền/hiện vật); Xác nhận hoàn thành nghĩa vụ BTC; Xem báo cáo sự kiện |
-| Ban tổ chức (BTC) | `organizer` | Ghi nhận hoàn thành nghĩa vụ quảng bá/tổ chức; Xác nhận hoàn thành nghĩa vụ doanh nghiệp; Nộp báo cáo kết quả sự kiện |
+| Tài khoản đại diện doanh nghiệp | `sponsor` | Ghi nhận hoàn thành nghĩa vụ tài trợ (chuyển tiền/hiện vật); Xác nhận hoàn thành nghĩa vụ BTC; Xem báo cáo sự kiện |
+| Tài khoản đại diện Ban tổ chức (BTC) | `organizer` | Ghi nhận hoàn thành nghĩa vụ quảng bá/tổ chức; Xác nhận hoàn thành nghĩa vụ doanh nghiệp; Nộp báo cáo kết quả sự kiện |
 | Hệ thống | `system` | Tạo nghĩa vụ tự động, gửi nhắc nhở, theo dõi deadline, cập nhật trạng thái hợp đồng |
 
 ---

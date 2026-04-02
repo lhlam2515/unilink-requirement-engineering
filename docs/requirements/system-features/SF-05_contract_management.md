@@ -8,7 +8,8 @@ Scope:            Quản lý toàn bộ vòng đời hợp đồng tài trợ �
                   hóa đơn VAT cho giao dịch tiền mặt.
 System Boundary:
   IN:             Tạo bản nháp hợp đồng từ deal đã đồng thuận; Nhập/chỉnh sửa các điều khoản;
-                  Xác nhận nội dung; Ký chữ ký điện tử; Xuất PDF; Phát hành hóa đơn VAT.
+                  Xác nhận nội dung; Hủy đồng thuận ký kết trước khi bắt đầu ký;
+                  Ký chữ ký điện tử; Xuất PDF; Phát hành hóa đơn VAT.
   OUT:            Thương thảo (SF-04 — đã hoàn tất trước khi bắt đầu);
                   Thực hiện nghĩa vụ (SF-06 — bắt đầu sau khi ký kết).
 Assumptions:
@@ -17,7 +18,8 @@ Assumptions:
   - [ASSUMED] Hợp đồng được tạo từ template có sẵn, điền thông tin từ deal context.
   - [ASSUMED] Hóa đơn VAT (hóa đơn đỏ) được tạo bởi hệ thống dựa trên yêu cầu của doanh nghiệp.
 Gaps Detected:
-  - Quy trình gốc không nêu rõ quy trình hủy hợp đồng sau khi ký → cần bổ sung.
+  - Cần bổ sung cơ chế hủy đồng thuận ký kết trong giai đoạn soạn thảo/xác nhận hợp đồng
+    trước khi có chữ ký điện tử đầu tiên.
   - Không nêu phiên bản (versioning) cho hợp đồng trong quá trình chỉnh sửa.
   - Không nêu rõ hóa đơn VAT tuân theo quy định nào cụ thể → đánh dấu ASSUMED.
 ```
@@ -28,8 +30,8 @@ Gaps Detected:
 
 | Business Actor | System Role | Permissions / Access Level |
 |---|---|---|
-| Ban tổ chức (BTC) | `organizer` | Soạn thảo, chỉnh sửa, xác nhận, ký chữ ký điện tử |
-| Doanh nghiệp | `sponsor` | Soạn thảo, chỉnh sửa, xác nhận, ký chữ ký điện tử, yêu cầu hóa đơn VAT |
+| Tài khoản đại diện Ban tổ chức (BTC) | `organizer` | Soạn thảo, chỉnh sửa, xác nhận, ký chữ ký điện tử |
+| Tài khoản đại diện doanh nghiệp | `sponsor` | Soạn thảo, chỉnh sửa, xác nhận, ký chữ ký điện tử, yêu cầu hóa đơn VAT |
 | Hệ thống | `system` | Tạo bản nháp từ template, xác thực nội dung, tạo PDF, tạo hóa đơn, ghi log |
 
 ---
@@ -219,7 +221,40 @@ Acceptance Criteria:
 Priority:      SHOULD
 ```
 
----
+### FR-0507: Hủy bỏ đồng thuận ký kết hợp đồng
+
+```
+ID:            FR-0507
+Name:          Hủy đồng thuận ký kết
+Description:   Hệ thống SHALL cho phép organizer hoặc sponsor hủy đồng thuận ký kết hợp đồng
+               khi hợp đồng đang ở trạng thái DRAFTING hoặc CONFIRMED và chưa có chữ ký
+               điện tử từ bất kỳ bên nào. Khi hủy đồng thuận, hệ thống SHALL chuyển contract
+               về trạng thái DRAFTING, reset các cờ xác nhận nội dung, và cập nhật deal liên kết
+               về IN_PROGRESS để hai bên quay lại thương thảo ở SF-04. Bên hủy PHẢI nhập lý do.
+Classification: SYSTEM-SUPPORTED
+Actor:         Organizer, Sponsor
+Trigger:       Actor nhấn "Hủy đồng thuận ký kết" trong trang hợp đồng
+Inputs:        contract_id, cancelled_by (UUID), cancellation_reason (text, required)
+Outputs:       contract.status = DRAFTING,
+               contract.organizer_content_confirmed = false,
+               contract.sponsor_content_confirmed = false,
+               deal.status = IN_PROGRESS,
+               cancellation_log_entry
+Business Rules: BR-0509
+Acceptance Criteria:
+  Given   contract ở trạng thái CONFIRMED
+  And     organizer_signed = false và sponsor_signed = false
+  When    sponsor nhấn "Hủy đồng thuận ký kết" với lý do = "Cần đàm phán lại quyền lợi truyền thông"
+  Then    hệ thống SHALL chuyển contract về DRAFTING
+  And     hệ thống SHALL reset organizer_content_confirmed = false và sponsor_content_confirmed = false
+  And     hệ thống SHALL chuyển deal liên kết về IN_PROGRESS
+  And     hệ thống SHALL thông báo cho organizer kèm lý do
+
+  Given   contract đã có organizer_signed = true hoặc sponsor_signed = true
+  When    actor cố hủy đồng thuận ký kết
+  Then    hệ thống SHALL từ chối "Không thể hủy đồng thuận sau khi đã bắt đầu ký hợp đồng"
+Priority:      MUST
+```
 
 ## Business Rules
 
@@ -272,6 +307,16 @@ Rule:        Hóa đơn VAT chỉ phát hành cho hợp đồng SIGNED có hình
              Mỗi hợp đồng chỉ có tối đa MỘT hóa đơn VAT.
 Source:      Quy trình gốc — Bước 4 (DN cần hóa đơn đỏ cho giao dịch tiền mặt)
 Type:        Validation
+
+ID:          BR-0509
+Rule:        Chỉ cho phép hủy đồng thuận ký kết khi contract ở trạng thái DRAFTING hoặc
+             CONFIRMED và chưa có chữ ký điện tử nào.
+             Khi hủy, hệ thống PHẢI reset cờ xác nhận nội dung hợp đồng và đưa deal liên kết
+             về IN_PROGRESS để quay lại thương thảo.
+             Lý do hủy là BẮT BUỘC (min 10 ký tự) và PHẢI được ghi audit log.
+Source:      [INFERRED — hỗ trợ quay lại thương thảo trước khi phát sinh chữ ký pháp lý]
+Type:        Validation + Routing
+
 ```
 
 ---
@@ -360,3 +405,4 @@ Relationships:
 | 4. Ký chữ ký điện tử | SYSTEM-SUPPORTED | FR-0504 | BR-0505, BR-0506 | Contract |
 | 4. Xuất tài liệu hợp đồng điện tử | SYSTEM-SUPPORTED | FR-0505 | BR-0507 | Contract |
 | 4. Hóa đơn đỏ cho giao dịch tiền mặt | SYSTEM-SUPPORTED | FR-0506 | BR-0508 | VATInvoice |
+| [INFERRED] Hủy đồng thuận ký kết hợp đồng | SYSTEM-SUPPORTED | FR-0507 | BR-0509 | Contract, Deal |

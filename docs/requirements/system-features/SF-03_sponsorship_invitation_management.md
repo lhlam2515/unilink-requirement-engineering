@@ -14,10 +14,11 @@ System Boundary:
 Assumptions:
   - [ASSUMED] Cả BTC và doanh nghiệp đều có thể là bên gửi hoặc bên nhận lời mời.
   - [ASSUMED] Mỗi cặp (hồ sơ tài trợ + doanh nghiệp) chỉ có thể có MỘT lời mời active tại một thời điểm.
+  - [ASSUMED] Lời mời tài trợ có thời hạn hiệu lực mặc định là 1 tháng.
   - [ASSUMED] Lý do từ chối là tùy chọn (optional) nhưng được khuyến khích.
 Gaps Detected:
-  - Quy trình gốc không nêu thời hạn hiệu lực của lời mời → cần bổ sung quy tắc hết hạn.
-  - Không nêu rõ BTC gửi lời mời cho toàn doanh nghiệp hay cho một đại diện cụ thể.
+  - Quy trình gốc cần xác định rõ lời mời được gửi đến tài khoản đại diện của doanh nghiệp, không phải nhiều thành viên.
+  - Cần chuẩn hóa thời hạn hiệu lực của lời mời là 1 tháng kể từ thời điểm gửi.
 ```
 
 ---
@@ -26,8 +27,8 @@ Gaps Detected:
 
 | Business Actor | System Role | Permissions / Access Level |
 |---|---|---|
-| Ban tổ chức (BTC) | `organizer` | Gửi lời mời tài trợ đến doanh nghiệp; Nhận và phản hồi lời mời từ doanh nghiệp |
-| Doanh nghiệp | `sponsor` | Gửi lời mời tài trợ đến BTC (dựa trên hồ sơ sự kiện); Nhận và phản hồi lời mời từ BTC |
+| Tài khoản đại diện Ban tổ chức (BTC) | `organizer` | Gửi lời mời tài trợ đến tài khoản đại diện doanh nghiệp; Nhận và phản hồi lời mời từ doanh nghiệp |
+| Tài khoản đại diện doanh nghiệp | `sponsor` | Gửi lời mời tài trợ đến BTC (dựa trên hồ sơ sự kiện); Nhận và phản hồi lời mời từ BTC |
 | Hệ thống | `system` | Xác thực tính hợp lệ lời mời, gửi thông báo, quản lý trạng thái, xử lý hết hạn tự động |
 
 ---
@@ -41,9 +42,9 @@ ID:            FR-0301
 Name:          Gửi lời mời tài trợ cho đối tác
 Description:   Hệ thống SHALL cho phép organizer gửi lời mời tài trợ đến một doanh nghiệp
                dựa trên một hồ sơ tài trợ cụ thể, hoặc cho phép sponsor gửi lời mời tài trợ
-               đến BTC dựa trên một hồ sơ tài trợ cụ thể. Lời mời PHẢI bao gồm tin nhắn giới thiệu
-               và liên kết đến hồ sơ tài trợ liên quan. Hệ thống SHALL xác thực tính hợp lệ
-               theo BR-0301 trước khi tạo lời mời.
+               đến tài khoản đại diện của BTC dựa trên một hồ sơ tài trợ cụ thể. Lời mời PHẢI bao gồm
+               tin nhắn giới thiệu và liên kết đến hồ sơ tài trợ liên quan. Hệ thống SHALL xác thực
+               tính hợp lệ theo BR-0301 trước khi tạo lời mời.
 Classification: SYSTEM-SUPPORTED
 Actor:         Organizer hoặc Sponsor (khởi tạo)
 Trigger:       Actor nhấn "Gửi lời mời tài trợ" từ trang chi tiết hồ sơ đối tác hoặc hồ sơ sự kiện
@@ -158,8 +159,8 @@ Inputs:        Danh sách lời mời có trạng thái PENDING và sent_at + ex
 Outputs:       status = EXPIRED, expired_at (timestamp), notification cho cả hai bên
 Business Rules: BR-0306
 Acceptance Criteria:
-  Given   lời mời tài trợ gửi ngày 01/05/2026 với thời hạn 14 ngày
-  And     hôm nay là 16/05/2026
+  Given   lời mời tài trợ gửi ngày 01/05/2026 với thời hạn 30 ngày
+  And     hôm nay là 31/05/2026
   And     lời mời vẫn ở trạng thái PENDING
   When    hệ thống chạy scheduled job kiểm tra hết hạn
   Then    hệ thống SHALL chuyển trạng thái sang EXPIRED
@@ -230,7 +231,7 @@ Source:      Quy trình gốc — Bước 2.3 (Sau khi nhận được lời m�
 Type:        Routing
 
 ID:          BR-0306
-Rule:        Lời mời tài trợ PENDING tự động hết hạn sau 14 ngày kể từ ngày gửi. [ASSUMED]
+Rule:        Lời mời tài trợ PENDING tự động hết hạn sau 30 ngày kể từ ngày gửi. [ASSUMED]
 Source:      [INFERRED — ngăn lời mời treo vô thời hạn]
 Type:        Time-based
 ```
