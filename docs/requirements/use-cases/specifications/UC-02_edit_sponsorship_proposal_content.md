@@ -18,7 +18,7 @@
 
 - Organizer đã đăng nhập vào hệ thống với vai trò `organizer`
 - Hồ sơ tài trợ đã tồn tại và đang ở trạng thái DRAFT hoặc PUBLISHED
-- Organizer là người tạo hoặc admin của tổ chức BTC sở hữu hồ sơ
+- Organizer là tài khoản đại diện duy nhất của tổ chức BTC sở hữu hồ sơ
 
 ---
 
@@ -30,7 +30,7 @@
 **Main Flow (Basic Path)**
 
 | Step | Actor | Action / System Response |
-|------|-------|--------------------------| 
+|------|-------|--------------------------|
 | 1 | Organizer | Mở trang chỉnh sửa hồ sơ tài trợ |
 | 2 | System | Hiển thị form chỉnh sửa với các mục: Thông tin cơ bản, Hình ảnh nhận diện, Thông tin chi tiết, Hình thức tài trợ |
 | 3 | Organizer | Nhập thông tin cơ bản: tên chương trình, loại hình sự kiện, thời gian bắt đầu/kết thúc, địa điểm tổ chức |

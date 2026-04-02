@@ -17,7 +17,7 @@
 **Preconditions**
 
 - Organizer đã đăng nhập vào hệ thống với vai trò `organizer`
-- Organizer thuộc một tổ chức BTC hợp lệ trên hệ thống
+- Organizer là tài khoản đại diện duy nhất của một tổ chức BTC hợp lệ trên hệ thống
 
 ---
 
@@ -33,7 +33,7 @@
 | 1 | Organizer | Chọn chức năng "Tạo hồ sơ tài trợ mới" |
 | 2 | System | Tạo hồ sơ mới với trạng thái DRAFT |
 | 3 | System | Gán proposal_id (UUID) duy nhất cho hồ sơ |
-| 4 | System | Gán hồ sơ cho tổ chức BTC mà organizer thuộc về |
+| 4 | System | Gán hồ sơ cho tổ chức BTC mà tài khoản organizer đại diện |
 | 5 | System | Ghi nhận thời gian tạo (created_at) và người tạo (created_by) |
 | 6 | System | Chuyển organizer đến trang chỉnh sửa hồ sơ tài trợ |
 | 7 | System | Use case kết thúc thành công — hồ sơ đã được khởi tạo ở trạng thái DRAFT |
@@ -42,14 +42,7 @@
 
 **Alternate Flows**
 
-> AF-01.a: Organizer có nhiều tổ chức BTC (triggered at Step 4)
-
-| Step | Actor / System | Action |
-|------|----------------|--------|
-| 4a | System | Phát hiện organizer thuộc nhiều tổ chức BTC |
-| 4b | System | Hiển thị danh sách tổ chức BTC để organizer chọn |
-| 4c | Organizer | Chọn tổ chức BTC muốn gắn hồ sơ |
-| 4d | System | Gán hồ sơ cho tổ chức được chọn, tiếp tục tại Step 5 |
+Không có alternate flow cho use case này.
 
 ---
 

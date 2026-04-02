@@ -18,7 +18,7 @@
 
 - Organizer đã đăng nhập vào hệ thống với vai trò `organizer`
 - Hồ sơ tài trợ đang ở trạng thái DRAFT
-- Organizer có quyền quản lý hồ sơ này
+- Organizer là tài khoản đại diện duy nhất của tổ chức BTC sở hữu hồ sơ
 
 ---
 
@@ -30,7 +30,7 @@
 **Main Flow (Basic Path)**
 
 | Step | Actor | Action / System Response |
-|------|-------|--------------------------| 
+|------|-------|--------------------------|
 | 1 | Organizer | Nhấn "Phát hành hồ sơ" |
 | 2 | System | Xác thực toàn bộ hồ sơ theo BR-0108: kiểm tra tên sự kiện, loại hình, thời gian, địa điểm, quy mô, ngân sách, đối tượng khán giả, hình thức tài trợ, gói tài trợ và quyền lợi |
 | 3 | System | Xác thực tất cả gói tài trợ có ít nhất một quyền lợi |

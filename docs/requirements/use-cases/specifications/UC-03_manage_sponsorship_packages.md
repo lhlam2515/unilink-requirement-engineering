@@ -18,7 +18,7 @@
 
 - Organizer đã đăng nhập vào hệ thống với vai trò `organizer`
 - Hồ sơ tài trợ đã tồn tại và đang ở trạng thái DRAFT hoặc PUBLISHED
-- Organizer có quyền chỉnh sửa hồ sơ này
+- Organizer là tài khoản đại diện duy nhất của tổ chức BTC sở hữu hồ sơ
 
 ---
 
@@ -30,7 +30,7 @@
 **Main Flow (Basic Path)**
 
 | Step | Actor | Action / System Response |
-|------|-------|--------------------------| 
+|------|-------|--------------------------|
 | 1 | Organizer | Chọn "Thêm gói tài trợ" trên trang chỉnh sửa hồ sơ |
 | 2 | System | Hiển thị form tạo gói tài trợ |
 | 3 | Organizer | Nhập thông tin gói: tên gói, cấp độ (Title/Co-Sponsor/Associate/Technical/Partner), mô tả, giá trị tài trợ tối thiểu, số lượng slot khả dụng |
