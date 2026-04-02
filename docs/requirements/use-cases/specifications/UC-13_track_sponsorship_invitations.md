@@ -28,7 +28,7 @@
 **Main Flow (Basic Path)**
 
 | Step | Actor | Action / System Response |
-|------|-------|--------------------------| 
+|------|-------|--------------------------|
 | 1 | Authenticated User | Truy cập trang "Lời mời tài trợ" trong dashboard |
 | 2 | System | Hiển thị danh sách lời mời với bộ lọc: trạng thái (ALL/PENDING/ACCEPTED/DECLINED/EXPIRED) và chiều (SENT/RECEIVED/ALL) |
 | 3 | Authenticated User | Áp dụng bộ lọc mong muốn |
@@ -80,5 +80,6 @@
 **Notes / Assumptions**
 
 - Danh sách lời mời hiển thị cả lời mời đã gửi và đã nhận
+- Lời mời PENDING tự động hết hạn sau 30 ngày (1 tháng) kể từ ngày gửi (BR-0306)
 - Actor có thể chuyển sang UC-12 để phản hồi lời mời PENDING
 - Liên kết: UC-11, UC-12

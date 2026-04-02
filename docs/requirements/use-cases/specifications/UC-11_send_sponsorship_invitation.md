@@ -30,7 +30,7 @@
 **Main Flow (Basic Path)**
 
 | Step | Actor | Action / System Response |
-|------|-------|--------------------------| 
+|------|-------|--------------------------|
 | 1 | Authenticated User | Nhấn "Gửi lời mời tài trợ" trên trang chi tiết hồ sơ |
 | 2 | System | Hiển thị form gửi lời mời: tin nhắn giới thiệu (bắt buộc), gói tài trợ ưu tiên (tùy chọn) |
 | 3 | Authenticated User | Nhập tin nhắn giới thiệu (tối thiểu 20 ký tự) |
@@ -103,5 +103,5 @@ Không có alternate flow cho use case này.
 **Notes / Assumptions**
 
 - Cả Organizer và Sponsor đều có thể gửi lời mời (hai chiều)
-- Lời mời PENDING sẽ tự động hết hạn sau 14 ngày (xử lý tự động bởi System, xem BR-0306)
+- Lời mời PENDING sẽ tự động hết hạn sau 30 ngày (1 tháng) kể từ ngày gửi (xử lý tự động bởi System, xem BR-0306)
 - Liên kết: UC-08, UC-09, UC-12, UC-13
