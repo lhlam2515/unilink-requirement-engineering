@@ -104,4 +104,4 @@
 - Phiên bản đầu sử dụng chữ ký điện tử đơn giản (vẽ/gõ), không phải chữ ký số PKI
 - Sau khi SIGNED: có thể xuất PDF (UC-23), yêu cầu hóa đơn VAT (UC-24)
 - Nghĩa vụ tài trợ được tạo tự động — theo dõi qua UC-25 đến UC-28
-- Liên kết: UC-21, UC-23, UC-24, UC-25
+- Liên kết: UC-21, UC-23, UC-24, UC-25, UC-33

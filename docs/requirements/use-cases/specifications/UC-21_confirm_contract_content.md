@@ -94,4 +94,4 @@ Không có exception flow đặc biệt cho use case này.
 
 - Xác nhận nội dung là bước bắt buộc trước khi ký — đảm bảo hai bên đồng ý cùng phiên bản
 - Nếu cần chỉnh sửa thêm: quay lại UC-20, xác nhận bị reset
-- Liên kết: UC-20, UC-22
+- Liên kết: UC-20, UC-22, UC-33
