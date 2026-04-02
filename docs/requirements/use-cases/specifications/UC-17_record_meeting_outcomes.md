@@ -1,7 +1,7 @@
 # UC-17: Ghi nhận kết quả cuộc họp
 
 **Brief Description**
-> Authenticated User (Organizer hoặc Sponsor) ghi nhận kết quả sau cuộc họp thương thảo, bao gồm tóm tắt nội dung, các quyết định đã thống nhất, và action items tiếp theo. Ghi chú được lưu trong deal context để tham khảo khi soạn hợp đồng.
+> Authenticated User (Organizer hoặc Sponsor) ghi nhận kết quả sau cuộc họp thương thảo vào notebook chung của deal, bao gồm tóm tắt nội dung, các quyết định đã thống nhất, và action items tiếp theo. Notebook được lưu trong deal context để tham khảo khi soạn hợp đồng; hệ thống không tạo nội dung tự động từ video meeting.
 
 ---
 
@@ -30,7 +30,7 @@
 **Main Flow (Basic Path)**
 
 | Step | Actor | Action / System Response |
-|------|-------|--------------------------| 
+|------|-------|--------------------------|
 | 1 | Authenticated User | Mở trang chi tiết cuộc họp đã CONFIRMED |
 | 2 | Authenticated User | Nhấn "Ghi nhận kết quả" |
 | 3 | System | Hiển thị form ghi nhận: tóm tắt nội dung, quyết định đã thống nhất, action items |
@@ -82,6 +82,7 @@ Không có exception flow đặc biệt cho use case này.
 
 **Notes / Assumptions**
 
-- Cả hai bên đều có thể ghi nhận kết quả, nhưng mỗi meeting chỉ có MỘT ghi chú (bên ghi sau sẽ chỉnh sửa bản đã có)
-- Ghi chú cuộc họp là nguồn tham khảo quan trọng cho giai đoạn soạn thảo hợp đồng
+- Cả hai bên đều có thể ghi nhận kết quả, nhưng mỗi meeting chỉ có MỘT notebook chung (bên ghi sau sẽ chỉnh sửa bản đã có)
+- Notebook cuộc họp là nguồn tham khảo quan trọng cho giai đoạn soạn thảo hợp đồng
+- Hệ thống không tạo nội dung tự động từ video meeting; actor tự nhập thông tin
 - Liên kết: UC-15, UC-16, UC-20

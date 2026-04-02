@@ -1,7 +1,7 @@
 # UC-15: Đặt lịch họp thương thảo
 
 **Brief Description**
-> Authenticated User (Organizer hoặc Sponsor) đề xuất lịch họp/meeting với đối tác trong phạm vi thương vụ, bao gồm ngày giờ, thời lượng, chủ đề, và hình thức họp (online/trực tiếp). Hệ thống gửi thông báo cho đối tác và nhắc nhở trước giờ họp.
+> Authenticated User (Organizer hoặc Sponsor) đề xuất lịch họp/meeting với đối tác trong phạm vi thương vụ, bao gồm ngày giờ, thời lượng, chủ đề, và hình thức họp (online/trực tiếp). Hệ thống chỉ ghi nhận lịch hẹn và gửi nhắc nhở; hệ thống không tổ chức hoặc host cuộc gọi.
 
 ---
 
@@ -30,7 +30,7 @@
 **Main Flow (Basic Path)**
 
 | Step | Actor | Action / System Response |
-|------|-------|--------------------------| 
+|------|-------|--------------------------|
 | 1 | Authenticated User | Nhấn "Đặt lịch họp" trong trang thương thảo |
 | 2 | System | Hiển thị form đặt lịch: ngày giờ, thời lượng, chủ đề, ghi chú, hình thức họp (ONLINE/IN_PERSON), link/địa điểm |
 | 3 | Authenticated User | Nhập ngày giờ họp, thời lượng dự kiến (phút), và chủ đề (bắt buộc) |
@@ -82,6 +82,7 @@ Không có alternate flow cho use case này.
 
 **Notes / Assumptions**
 
+- Hệ thống chỉ đóng vai trò ghi nhận lịch hẹn và gửi nhắc nhở; không cung cấp giao diện video call hay tổ chức cuộc họp trực tuyến
 - Hệ thống không tích hợp lịch bên ngoài (Google Calendar, v.v.) ở phiên bản đầu
 - Đối tác phản hồi đề xuất qua UC-16
 - Kết quả họp được ghi nhận qua UC-17
