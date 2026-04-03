@@ -2,8 +2,8 @@
 
 ## Tổng quan
 
-Tài liệu này liệt kê toàn bộ use case của hệ thống UniLink, được phân tích từ 7 System Features
-(SF-01 đến SF-07). Mỗi use case đại diện cho **một mục tiêu cụ thể** của một actor trong một phiên
+Tài liệu này liệt kê toàn bộ use case của hệ thống UniLink, được phân tích từ 10 System Features
+(SF-01 đến SF-10). Mỗi use case đại diện cho **một mục tiêu cụ thể** của một actor trong một phiên
 làm việc duy nhất.
 
 > Mô hình use case (quan hệ, phụ thuộc, sơ đồ Mermaid, module decomposition) được tách riêng tại [use-case-model.md](use-case-model.md).
@@ -22,10 +22,11 @@ làm việc duy nhất.
 
 | Actor | System Role | Kế thừa từ | Mô tả |
 |-------|-------------|------------|--------|
+| **Guest** | `guest` | — | Người dùng chưa đăng nhập / chưa có tài khoản trên hệ thống |
 | **Organizer (BTC)** | `organizer` | Authenticated User | Ban tổ chức — Câu lạc bộ, đội nhóm sinh viên tổ chức sự kiện |
 | **Sponsor (Doanh nghiệp)** | `sponsor` | Authenticated User | Doanh nghiệp — Nhà tài trợ tiềm năng hoặc đã ký kết |
 | **System** | `system` | — | Hệ thống UniLink — xử lý tự động, thông báo, nhắc nhở, tính toán |
-| **Admin** | `admin` | Authenticated User | Quản trị viên hệ thống — kiểm duyệt nội dung |
+| **Admin** | `admin` | Authenticated User | Quản trị viên hệ thống — kiểm duyệt nội dung, xác thực tổ chức |
 
 ---
 
@@ -113,6 +114,45 @@ làm việc duy nhất.
 
 ---
 
+### SF-08: Account Registration & Authentication
+
+| UC ID | Tên Use Case | Primary Actor | Source FRs | File |
+|-------|-------------|---------------|------------|------|
+| UC-34 | Đăng ký tài khoản bằng email | Guest | FR-0801, FR-0804, FR-0805 | [UC-34](specifications/UC-34_register_account_by_email.md) |
+| UC-35 | Đăng ký tài khoản bằng Google | Guest | FR-0802, FR-0804, FR-0805 | [UC-35](specifications/UC-35_register_account_by_google.md) |
+| UC-36 | Đăng nhập hệ thống | Guest | FR-0803, FR-0802 | [UC-36](specifications/UC-36_login.md) |
+| UC-37 | Đặt lại mật khẩu | Guest | FR-0806 | [UC-37](specifications/UC-37_reset_password.md) |
+
+> **Ghi chú FR mapping**: FR-0804 (Chọn vai trò) và FR-0805 (Nhập thông tin tổ chức) được gộp vào UC-34 và UC-35 vì chúng là bước bắt buộc trong cùng phiên đăng ký, không có mục tiêu độc lập. FR-0802 cover cả đăng ký (UC-35) và đăng nhập (UC-36 — alternate flow).
+
+---
+
+### SF-09: Organization Profile & Document Management
+
+| UC ID | Tên Use Case | Primary Actor | Source FRs | File |
+|-------|-------------|---------------|------------|------|
+| UC-38 | Bổ sung thông tin và tài liệu minh chứng | Authenticated User | FR-0901 | [UC-38](specifications/UC-38_supplement_org_info_documents.md) |
+| UC-39 | Chỉnh sửa hồ sơ tổ chức | Authenticated User | FR-0902 | [UC-39](specifications/UC-39_edit_organization_profile.md) |
+| UC-40 | Gửi hồ sơ xác thực | Authenticated User | FR-0903 | [UC-40](specifications/UC-40_submit_verification_request.md) |
+
+> **Ghi chú FR mapping**: FR-0904 (Phân quyền tự động) và FR-0905 (Xóa tài liệu tạm) là FULLY AUTOMATED — được nhúng vào system response của UC liên quan (UC-40, UC-43) thay vì tạo UC riêng, nhất quán với nguyên tắc thiết kế hiện tại.
+
+---
+
+### SF-10: Organization Verification & Moderation
+
+| UC ID | Tên Use Case | Primary Actor | Source FRs | File |
+|-------|-------------|---------------|------------|------|
+| UC-41 | Xem danh sách hồ sơ chờ kiểm duyệt | Admin | FR-1001 | [UC-41](specifications/UC-41_view_pending_verifications.md) |
+| UC-42 | Xem chi tiết hồ sơ xác thực | Admin | FR-1002 | [UC-42](specifications/UC-42_view_verification_details.md) |
+| UC-43 | Phê duyệt hồ sơ tổ chức | Admin | FR-1003 | [UC-43](specifications/UC-43_approve_organization.md) |
+| UC-44 | Từ chối hồ sơ tổ chức | Admin | FR-1004 | [UC-44](specifications/UC-44_reject_organization.md) |
+| UC-45 | Yêu cầu bổ sung thông tin hồ sơ | Admin | FR-1005 | [UC-45](specifications/UC-45_request_additional_info.md) |
+
+> **Ghi chú FR mapping**: FR-1006 (Thông báo sự kiện xác thực) là FULLY AUTOMATED — được nhúng vào postconditions của UC-43, UC-44, UC-45 thay vì tạo UC riêng.
+
+---
+
 ## Thống kê
 
 | Nhóm Feature | Số lượng UC |
@@ -124,7 +164,10 @@ làm việc duy nhất.
 | SF-05: Contract Management | 6 |
 | SF-06: Obligation Fulfillment | 4 |
 | SF-07: Review & Reputation | 3 |
-| **Tổng cộng** | **33** |
+| SF-08: Account Registration & Authentication | 4 |
+| SF-09: Organization Profile & Document Management | 3 |
+| SF-10: Organization Verification & Moderation | 5 |
+| **Tổng cộng** | **45** |
 
 ---
 
@@ -133,9 +176,13 @@ làm việc duy nhất.
 - **Authenticated User** là actor trừu tượng, đóng vai trò generalization cho Organizer và Sponsor.
   Các use case có Primary Actor là "Authenticated User" có nghĩa cả Organizer và Sponsor đều có thể
   thực hiện use case đó (tùy ngữ cảnh cụ thể).
+- **Guest** là actor đại diện cho người dùng chưa có tài khoản hoặc chưa đăng nhập.
+  Sau khi hoàn tất đăng ký (UC-34/UC-35), Guest trở thành Authenticated User.
+  Sau khi đăng nhập (UC-36), Guest cũng trở thành Authenticated User.
 - Mỗi tổ chức chỉ có **một tài khoản đại diện** trên nền tảng; hệ thống không quản lý thành viên nội bộ hay phân quyền nhiều người dùng trong cùng tổ chức.
 - **System** là secondary actor trong hầu hết các use case — chịu trách nhiệm xử lý tự động
   (gửi thông báo, tính toán, xác thực dữ liệu).
 - Các hành vi hoàn toàn tự động (fully automated) như gửi thông báo, tự động hết hạn,
-  tự động tạo nghĩa vụ được tích hợp vào các use case liên quan dưới dạng system response
-  trong Main Flow hoặc Alternate Flow, thay vì tạo use case riêng biệt.
+  tự động tạo nghĩa vụ, phân quyền tự động, xóa tài liệu tạm được tích hợp vào các use case
+  liên quan dưới dạng system response trong Main Flow hoặc Postconditions, thay vì tạo use case
+  riêng biệt.

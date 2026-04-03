@@ -33,6 +33,9 @@ tại một extension point cụ thể, chỉ khi điều kiện mở rộng đ�
 | 10 | UC-27 (Xác nhận hoàn thành) | UC-25 (Theo dõi trạng thái nghĩa vụ) | Khi actor xem chi tiết một nghĩa vụ SUBMITTED | Actor là bên đối tác và muốn xác nhận/từ chối |
 | 11 | UC-31 (Báo cáo đánh giá vi phạm) | UC-30 (Xem điểm uy tín) | Khi actor xem đánh giá trên trang uy tín | Actor phát hiện đánh giá vi phạm |
 | 12 | UC-33 (Hủy đồng thuận ký kết) | UC-20 (Chỉnh sửa điều khoản hợp đồng) | Trong giai đoạn soạn thảo/xác nhận hợp đồng | Actor muốn hủy bỏ thỏa thuận trước khi ký |
+| 13 | UC-43 (Phê duyệt hồ sơ) | UC-42 (Xem chi tiết hồ sơ xác thực) | Sau khi Admin xem xong chi tiết hồ sơ | Admin quyết định phê duyệt hồ sơ |
+| 14 | UC-44 (Từ chối hồ sơ) | UC-42 (Xem chi tiết hồ sơ xác thực) | Sau khi Admin xem xong chi tiết hồ sơ | Admin quyết định từ chối hồ sơ |
+| 15 | UC-45 (Yêu cầu bổ sung) | UC-42 (Xem chi tiết hồ sơ xác thực) | Sau khi Admin xem xong chi tiết hồ sơ | Admin quyết định yêu cầu bổ sung thông tin |
 
 ---
 
@@ -47,11 +50,12 @@ như một phần không thể thiếu trong luồng thực thi. Included UC là
 | 1 | UC-06 (Tìm kiếm sự kiện) | UC-08 (Xem chi tiết hồ sơ tài trợ) | Sponsor luôn cần xem chi tiết ít nhất một hồ sơ để đạt mục tiêu tìm kiếm |
 | 2 | UC-07 (Tìm kiếm doanh nghiệp) | UC-09 (Xem chi tiết hồ sơ doanh nghiệp) | Organizer luôn cần xem chi tiết ít nhất một doanh nghiệp để đạt mục tiêu tìm kiếm |
 | 3 | UC-21 (Xác nhận nội dung HĐ) | UC-20 (Chỉnh sửa điều khoản HĐ) | Quy trình xác nhận luôn bao gồm bước xem lại nội dung; nếu cần chỉnh sửa, UC-20 được kích hoạt và reset xác nhận (BR-0504) |
+| 4 | UC-41 (Xem danh sách chờ duyệt) | UC-42 (Xem chi tiết hồ sơ xác thực) | Admin luôn cần xem chi tiết hồ sơ để đạt mục tiêu kiểm duyệt |
 
 > **Ghi chú về `<<include>>`**: Mô hình hiện tại giảm thiểu quan hệ `<<include>>` vì:
 >
 > - Xác thực (authentication) được xử lý bằng abstract actor `Authenticated User` — không cần UC riêng.
-> - Các hành vi tự động (gửi thông báo, tạo nghĩa vụ, tính điểm uy tín) được nhúng vào
+> - Các hành vi tự động (gửi thông báo, tạo nghĩa vụ, tính điểm uy tín, phân quyền tự động) được nhúng vào
 >   Main Flow của UC liên quan dưới dạng system response, không tách thành UC riêng.
 
 ---
@@ -63,6 +67,16 @@ Các use case sau đây có **quan hệ phụ thuộc theo quy trình nghiệp v
 Đây không phải `<<include>>` hay `<<extend>>` — mà là chuỗi quy trình kinh doanh.
 
 ```text
+Giai đoạn 0: Đăng ký và Xác thực tài khoản (BP02)
+  UC-34 / UC-35 (Đăng ký) → UC-38 (Bổ sung thông tin) → UC-40 (Gửi xác thực)
+  UC-40 → UC-41 (Admin xem danh sách) → UC-42 (Xem chi tiết)
+                                          → UC-43 (Phê duyệt)
+                                          → UC-44 (Từ chối) → UC-39 (Chỉnh sửa) → UC-40 (Gửi lại)
+                                          → UC-45 (Yêu cầu bổ sung) → UC-38/UC-39 → UC-40 (Gửi lại)
+
+  UC-36 (Đăng nhập) — gateway cho tất cả UC yêu cầu Authenticated User
+  UC-37 (Đặt lại mật khẩu) — luồng hỗ trợ riêng biệt
+
 Giai đoạn 1: Tạo hồ sơ tài trợ
   UC-01 → UC-02 / UC-03 → UC-04
 
@@ -108,6 +122,18 @@ Giai đoạn 7: Đánh giá sau hợp đồng
 
 | UC | Precondition từ UC khác | Postcondition kích hoạt UC khác |
 |----|-------------------------|-------------------------------|
+| UC-34 | — | UC-38, UC-40 |
+| UC-35 | — | UC-38, UC-40 |
+| UC-36 | UC-34 / UC-35 (tài khoản tồn tại) | Gateway cho tất cả UC yêu cầu Authenticated User |
+| UC-37 | UC-34 (tài khoản email tồn tại) | UC-36 (đăng nhập với mật khẩu mới) |
+| UC-38 | UC-34 / UC-35 (tài khoản đã tạo) | UC-40 |
+| UC-39 | UC-34 / UC-35 (hồ sơ tổ chức tồn tại) | UC-40 |
+| UC-40 | UC-38 (thông tin đầy đủ), email verified | UC-41 |
+| UC-41 | UC-40 (có hồ sơ PENDING) | UC-42 |
+| UC-42 | UC-41 (chọn hồ sơ từ danh sách) | UC-43, UC-44, UC-45 |
+| UC-43 | UC-42 (đã xem chi tiết) | Mở khóa quyền (FR-0904) → UC-01~UC-31 |
+| UC-44 | UC-42 (đã xem chi tiết) | UC-39, UC-40 (gửi lại) |
+| UC-45 | UC-42 (đã xem chi tiết) | UC-38, UC-39, UC-40 (bổ sung và gửi lại) |
 | UC-01 | — | UC-02, UC-03 |
 | UC-02 | UC-01 (hồ sơ DRAFT tồn tại) | UC-04 |
 | UC-03 | UC-01 (hồ sơ DRAFT tồn tại) | UC-04 |
@@ -149,6 +175,7 @@ Giai đoạn 7: Đánh giá sau hợp đồng
 ```mermaid
 graph TB
     subgraph Actors
+        GUE["👤 Guest"]
         AU["🧑 Authenticated User"]
         ORG["🎓 Organizer"]
         SPO["🏢 Sponsor"]
@@ -156,6 +183,27 @@ graph TB
         ADM["🔑 Admin"]
         ORG -.->|generalizes| AU
         SPO -.->|generalizes| AU
+    end
+
+    subgraph SF08["SF-08: Account Registration & Authentication"]
+        UC34["UC-34: Đăng ký bằng email"]
+        UC35["UC-35: Đăng ký bằng Google"]
+        UC36["UC-36: Đăng nhập"]
+        UC37["UC-37: Đặt lại mật khẩu"]
+    end
+
+    subgraph SF09["SF-09: Organization Profile & Document Mgmt"]
+        UC38["UC-38: Bổ sung thông tin/tài liệu"]
+        UC39["UC-39: Chỉnh sửa hồ sơ tổ chức"]
+        UC40["UC-40: Gửi hồ sơ xác thực"]
+    end
+
+    subgraph SF10["SF-10: Organization Verification & Moderation"]
+        UC41["UC-41: Xem danh sách chờ duyệt"]
+        UC42["UC-42: Xem chi tiết hồ sơ"]
+        UC43["UC-43: Phê duyệt hồ sơ"]
+        UC44["UC-44: Từ chối hồ sơ"]
+        UC45["UC-45: Yêu cầu bổ sung"]
     end
 
     subgraph SF01["SF-01: Sponsorship Proposal Management"]
@@ -212,7 +260,25 @@ graph TB
         UC31["UC-31: Báo cáo vi phạm"]
     end
 
-    %% Actor connections
+    %% Actor connections — SF-08
+    GUE --- UC34
+    GUE --- UC35
+    GUE --- UC36
+    GUE --- UC37
+
+    %% Actor connections — SF-09
+    AU --- UC38
+    AU --- UC39
+    AU --- UC40
+
+    %% Actor connections — SF-10
+    ADM --- UC41
+    ADM --- UC42
+    ADM --- UC43
+    ADM --- UC44
+    ADM --- UC45
+
+    %% Actor connections — SF-01~07
     ORG --- UC01
     ORG --- UC02
     ORG --- UC03
@@ -253,8 +319,9 @@ graph TB
     UC06 -.->|"«include»"| UC08
     UC07 -.->|"«include»"| UC09
     UC21 -.->|"«include»"| UC20
+    UC41 -.->|"«include»"| UC42
 
-    %% Extend relationships
+    %% Extend relationships — BP01
     UC10 -.->|"«extend»"| UC08
     UC10 -.->|"«extend»"| UC09
     UC11 -.->|"«extend»"| UC08
@@ -267,6 +334,11 @@ graph TB
     UC27 -.->|"«extend»"| UC25
     UC31 -.->|"«extend»"| UC30
     UC33 -.->|"«extend»"| UC20
+
+    %% Extend relationships — BP02
+    UC43 -.->|"«extend»"| UC42
+    UC44 -.->|"«extend»"| UC42
+    UC45 -.->|"«extend»"| UC42
 ```
 
 ---
@@ -275,15 +347,33 @@ graph TB
 
 | Loại quan hệ | Số lượng |
 |---|---|
-| `<<extend>>` | 12 |
-| `<<include>>` | 3 |
-| Phụ thuộc tuần tự | 30+ |
+| `<<extend>>` | 15 |
+| `<<include>>` | 4 |
+| Phụ thuộc tuần tự | 40+ |
 
 ---
 
 ## Đề xuất phân rã Module (Module Decomposition)
 
-Để giảm độ phức tạp khi phát triển và triển khai, Use Case Model được đề xuất phân rã thành 4 module chính, phù hợp với kiến trúc microservices hoặc bounded context:
+Để giảm độ phức tạp khi phát triển và triển khai, Use Case Model được đề xuất phân rã thành 5 module chính, phù hợp với kiến trúc microservices hoặc bounded context:
+
+### Module 0: Identity & Verification
+
+**Use Cases**: UC-34 ~ UC-45
+
+**Mô tả**: Quản lý vòng đời tài khoản — từ đăng ký, đăng nhập, xác minh email, bổ sung hồ sơ tổ chức, đến kiểm duyệt và xác thực bởi Admin. Bao gồm cả phân quyền tự động theo trạng thái xác thực.
+
+**Bounded Context**: Account, Organization, Verification, Authentication
+
+**Đặc điểm**:
+
+- Là **prerequisite module** — tất cả modules khác đều phụ thuộc vào authentication/authorization từ module này
+- Hai quy trình đăng ký song song: Email (UC-34) và Google OAuth (UC-35)
+- Admin moderation workflow: UC-41 → UC-42 → UC-43/UC-44/UC-45
+- State machine: UNVERIFIED → PENDING_REVIEW → VERIFIED / REJECTED / INFO_REQUIRED
+- Fully automated behaviors (FR-0904, FR-0905, FR-1006) được nhúng vào UC liên quan
+
+---
 
 ### Module 1: Proposal & Discovery
 
@@ -354,13 +444,16 @@ graph TB
 
 - **`<<extend>>`** được sử dụng khi một UC bổ sung hành vi **tùy chọn** vào UC cơ sở.
   Ví dụ: UC-10 (Bookmark) mở rộng UC-08/UC-09 — sponsor/organizer có thể chọn bookmark
-  sau khi xem chi tiết, nhưng không bắt buộc.
+  sau khi xem chi tiết, nhưng không bắt buộc. Tương tự, UC-43/UC-44/UC-45 mở rộng UC-42 —
+  Admin có thể chọn phê duyệt, từ chối, hoặc yêu cầu bổ sung sau khi xem chi tiết hồ sơ.
 - **`<<include>>`** được giảm thiểu nhờ thiết kế abstract actor.
   Xác thực người dùng được xử lý qua generalization `Authenticated User` thay vì
-  tạo UC "Đăng nhập" riêng với `<<include>>` ở mọi UC.
-- **Phụ thuộc tuần tự** phản ánh quy trình nghiệp vụ: hồ sơ → tìm kiếm → lời mời →
-  thương thảo → hợp đồng → nghĩa vụ → đánh giá. Mỗi giai đoạn tạo precondition
-  cho giai đoạn tiếp theo thông qua trạng thái entity (DRAFT → PUBLISHED → ACCEPTED →
-  IN_PROGRESS → AGREED → DRAFTING → CONFIRMED → SIGNED → COMPLETED).
+  tạo UC "Đăng nhập" riêng với `<<include>>` ở mọi UC. UC-41 <<include>> UC-42 là
+  trường hợp bắt buộc tương tự UC-06 <<include>> UC-08.
+- **Phụ thuộc tuần tự** phản ánh quy trình nghiệp vụ: đăng ký → xác thực → hồ sơ →
+  tìm kiếm → lời mời → thương thảo → hợp đồng → nghĩa vụ → đánh giá. Giai đoạn 0 (BP02)
+  là prerequisite cho tất cả giai đoạn sau (BP01).
 - **UC-33 (Hủy đồng thuận)** là extend mới, cho phép quay lui từ giai đoạn hợp đồng
   về IN_PROGRESS nếu chưa ký. Đây là safety valve cho quy trình ký kết.
+- **Guest actor** (mới từ BP02) là entry point cho hệ thống — sau khi đăng ký/đăng nhập
+  thành công, Guest trở thành Authenticated User và có thể tham gia các UC từ Giai đoạn 1 trở đi.
