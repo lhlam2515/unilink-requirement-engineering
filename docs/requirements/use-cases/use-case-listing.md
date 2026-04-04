@@ -157,11 +157,11 @@ làm việc duy nhất.
 
 | UC ID | Tên Use Case | Primary Actor | Source FRs | File |
 |-------|-------------|---------------|------------|------|
-| UC-46 | Xem hồ sơ tổ chức công khai | Guest hoặc Authenticated User | FR-1101, FR-1104 | [UC-46](specifications/UC-46_view_public_organization_profile.md) |
-| UC-47 | Xem lịch sử hồ sơ tài trợ công khai | Guest hoặc Authenticated User | FR-1102 | [UC-47](specifications/UC-47_view_public_sponsorship_history.md) |
-| UC-48 | Xem lịch sử giao dịch tài trợ công khai | Guest hoặc Authenticated User | FR-1103 | [UC-48](specifications/UC-48_view_public_sponsorship_transaction_history.md) |
+| UC-46 | Xem hồ sơ tổ chức công khai | Authenticated User | FR-1101, FR-1104 | [UC-46](specifications/UC-46_view_public_organization_profile.md) |
+| UC-47 | Xem lịch sử hồ sơ tài trợ công khai | Authenticated User | FR-1102 | [UC-47](specifications/UC-47_view_public_sponsorship_history.md) |
+| UC-48 | Xem lịch sử giao dịch tài trợ công khai | Authenticated User | FR-1103 | [UC-48](specifications/UC-48_view_public_sponsorship_transaction_history.md) |
 
-> **Ghi chú**: FR-1104 (Tóm tắt uy tín) được hiển thị inline trên UC-46 dưới dạng read-only summary. Guest KHÔNG được điều hướng sang UC-30/SCR-018. Chỉ tổ chức VERIFIED mới có public profile (BR-1101).
+> **Ghi chú**: Chỉ Authenticated User mới truy cập được public profile (không có Guest). FR-1104 hiển thị tóm tắt uy tín + liên kết sang UC-30/SCR-018. UC-30 là `<<extend>>` từ UC-46. Chỉ tổ chức VERIFIED mới có public profile (BR-1101).
 
 ---
 

@@ -38,6 +38,7 @@ tại một extension point cụ thể, chỉ khi điều kiện mở rộng đ�
 | 15 | UC-45 (Yêu cầu bổ sung) | UC-42 (Xem chi tiết hồ sơ xác thực) | Sau khi Admin xem xong chi tiết hồ sơ | Admin quyết định yêu cầu bổ sung thông tin |
 | 16 | UC-47 (Xem lịch sử hồ sơ tài trợ công khai) | UC-46 (Xem hồ sơ tổ chức công khai) | Khi actor chọn tab lịch sử tài trợ | Actor muốn xem lịch sử public của Organizer |
 | 17 | UC-48 (Xem lịch sử giao dịch tài trợ công khai) | UC-46 (Xem hồ sơ tổ chức công khai) | Khi actor chọn tab lịch sử giao dịch | Actor muốn xem lịch sử public của Sponsor |
+| 18 | UC-30 (Xem điểm uy tín) | UC-46 (Xem hồ sơ tổ chức công khai) | Khi actor nhấn "Xem chi tiết uy tín" từ tóm tắt uy tín | Actor muốn xem chi tiết đánh giá và reputation |
 
 ---
 
@@ -118,9 +119,9 @@ Giai đoạn 7: Đánh giá sau hợp đồng
                         └── UC-31 (Báo cáo vi phạm)
 
 Giai đoạn 8: Hồ sơ tổ chức công khai
-  Public profile (VERIFIED) ──→ UC-46 ──┬── UC-47 (Organizer history)
+  Public profile (VERIFIED) ──→ UC-46 ──┬── UC-30 (chi tiết uy tín)
+                                        ├── UC-47 (Organizer history)
                                         └── UC-48 (Sponsor history)
-  Note: UC-46 hiển thị tóm tắt uy tín (read-only), nhưng KHÔNG
         điều hướng sang UC-30/SCR-018 cho Guest.
 ```
 
@@ -173,7 +174,7 @@ Giai đoạn 8: Hồ sơ tổ chức công khai
 | UC-29 | Contract kết thúc (validity_end < today hoặc obligations CONFIRMED) | UC-30 |
 | UC-30 | UC-29 (có đánh giá APPROVED) | — |
 | UC-31 | UC-30 (đánh giá hiển thị công khai) | — |
-| UC-46 | Public profile đủ điều kiện (VERIFIED) | UC-47, UC-48 |
+| UC-46 | Public profile đủ điều kiện (VERIFIED) | UC-30, UC-47, UC-48 |
 | UC-47 | UC-46 (mở tab lịch sử tài trợ) | — |
 | UC-48 | UC-46 (mở tab lịch sử giao dịch) | — |
 | UC-32 | Có hồ sơ PUBLISHED hoặc profile ACTIVE | UC-08, UC-09 |
@@ -354,6 +355,7 @@ graph TB
     UC27 -.->|"«extend»"| UC25
     UC31 -.->|"«extend»"| UC30
     UC33 -.->|"«extend»"| UC20
+    UC30 -.->|"«extend»"| UC46
     UC47 -.->|"«extend»"| UC46
     UC48 -.->|"«extend»"| UC46
 
@@ -369,7 +371,7 @@ graph TB
 
 | Loại quan hệ | Số lượng |
 |---|---|
-| `<<extend>>` | 17 |
+| `<<extend>>` | 18 |
 | `<<include>>` | 4 |
 | Phụ thuộc tuần tự | 40+ |
 
@@ -490,8 +492,8 @@ công khai cho khách truy cập tra cứu. Đây là lớp read-only tách bi�
   tạo UC "Đăng nhập" riêng với `<<include>>` ở mọi UC. UC-41 <<include>> UC-42 là
   trường hợp bắt buộc tương tự UC-06 <<include>> UC-08.
 - **Public profile module** (UC-46~UC-48) là lớp public read-only phía trên reputation.
-  UC-46 đóng vai trò public hub và hiển thị tóm tắt uy tín (read-only). Guest KHÔNG được
-  điều hướng sang UC-30/SCR-018. Authenticated User truy cập UC-30 từ các luồng khác
+  UC-46 đóng vai trò public hub. Authenticated User có thể điều hướng sang
+  UC-30/SCR-018 từ tóm tắt uy tín. Chỉ AU mới truy cập được public profile.
   (SCR-005, SCR-006) trong SF-07.
 - **Phụ thuộc tuần tự** phản ánh quy trình nghiệp vụ: đăng ký → xác thực → hồ sơ →
   tìm kiếm → lời mời → thương thảo → hợp đồng → nghĩa vụ → đánh giá. Giai đoạn 0 (BP02)

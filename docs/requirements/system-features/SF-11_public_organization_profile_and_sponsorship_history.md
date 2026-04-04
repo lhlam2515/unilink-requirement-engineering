@@ -24,8 +24,8 @@ Assumptions:
   - [CONFIRMED] Chỉ các hồ sơ/giao dịch có trạng thái đủ điều kiện công khai mới xuất hiện
     trong danh sách lịch sử.
   - [CONFIRMED] Màn public profile là read-only; không có hành động chỉnh sửa từ phía visitor.
-  - [CONFIRMED] Guest chỉ xem tóm tắt uy tín trên public profile; KHÔNG được điều hướng sang
-    màn chi tiết uy tín SCR-018 (yêu cầu Authenticated User).
+  - [UPDATED] Hồ sơ công khai chỉ dành cho Authenticated User — Guest KHÔNG xem được.
+    Authenticated User có thể xem tóm tắt uy tín và điều hướng sang SCR-018 (UC-30).
   - [CONFIRMED] Danh sách lịch sử hiển thị tối đa 5 mục gần nhất; không cho phép cấu hình
     page size.
   - [CONFIRMED] Lịch sử public chỉ hiển thị dạng danh sách; mỗi mục có thể liên kết sang
@@ -41,8 +41,7 @@ Gaps Detected:
 
 | Business Actor | System Role | Permissions / Access Level |
 |---|---|---|
-| Khách truy cập / đối tác | `guest` | Xem hồ sơ tổ chức công khai, xem lịch sử công khai, xem tóm tắt uy tín |
-| Tài khoản đã đăng nhập | `authenticated user` | Xem cùng dữ liệu công khai, có thể điều hướng sang các màn chi tiết khác |
+| Tài khoản đã đăng nhập (Organizer hoặc Sponsor) | `authenticated user` | Xem hồ sơ tổ chức công khai, xem lịch sử công khai, xem tóm tắt uy tín, điều hướng sang chi tiết uy tín (UC-30/SCR-018) |
 | Hệ thống | `system` | Truy xuất, lọc, phân trang, và biên tập dữ liệu công khai |
 
 ---
@@ -59,8 +58,8 @@ Description:   Hệ thống SHALL hiển thị hồ sơ công khai của một t
                Sponsor), trạng thái xác thực, khu vực hoạt động, và mô tả ngắn.
                Hệ thống SHALL chỉ hiển thị các tổ chức đủ điều kiện public theo BR-1101.
 Classification: SYSTEM-SUPPORTED
-Actor:         Guest hoặc Authenticated User
-Trigger:       Người dùng truy cập đường dẫn public profile hoặc chọn tổ chức từ một liên kết
+Actor:         Authenticated User
+Trigger:       Người dùng đã đăng nhập truy cập đường dẫn public profile hoặc chọn tổ chức từ một liên kết
                nội bộ trong hệ thống.
 Inputs:        organization_id
 Outputs:       PublicOrganizationProfileView
@@ -87,7 +86,7 @@ Description:   Hệ thống SHALL hiển thị lịch sử công khai các hồ 
                công khai theo chính sách. Mỗi mục lịch sử SHALL hiển thị dữ liệu tóm tắt về
                sự kiện, thời gian, trạng thái hợp tác, và số liệu tổng quan được phép công khai.
 Classification: SYSTEM-SUPPORTED
-Actor:         Guest hoặc Authenticated User
+Actor:         Authenticated User
 Trigger:       Người dùng chọn tab hoặc section "Lịch sử tài trợ" trên public profile của tổ chức
                có vai trò Organizer.
 Inputs:        organization_id, filter_year (optional), filter_status (optional), page
@@ -115,7 +114,7 @@ Description:   Hệ thống SHALL hiển thị lịch sử công khai các giao 
                đồng, và dữ liệu nhạy cảm. Mỗi mục SHALL hiển thị thông tin tóm tắt về sự kiện,
                thời gian, hình thức tài trợ, và trạng thái hoàn tất.
 Classification: SYSTEM-SUPPORTED
-Actor:         Guest hoặc Authenticated User
+Actor:         Authenticated User
 Trigger:       Người dùng chọn tab hoặc section "Lịch sử giao dịch" trên public profile của tổ chức
                có vai trò Sponsor.
 Inputs:        organization_id, filter_year (optional), filter_type (optional), page
@@ -132,35 +131,31 @@ Acceptance Criteria:
 Priority:      MUST
 ```
 
-### FR-1104: Xem tóm tắt uy tín trên public profile
+### FR-1104: Xem tóm tắt uy tín và điều hướng sang chi tiết
 
 ```
 ID:            FR-1104
-Name:          Xem tóm tắt uy tín trên public profile
+Name:          Xem tóm tắt uy tín và điều hướng đến màn uy tín chi tiết
 Description:   Hệ thống SHALL hiển thị một tóm tắt uy tín ngắn trên public profile để hỗ trợ
                người dùng đánh giá nhanh. Tóm tắt bao gồm: điểm uy tín trung bình, điểm chất
                lượng hợp tác trung bình, và tổng số đánh giá.
-               Guest chỉ xem tóm tắt uy tín tại đây — KHÔNG có điều hướng sang SCR-018.
-               Authenticated User có thể xem chi tiết uy tín thông qua luồng riêng (UC-30,
-               SF-07), nằm ngoài phạm vi FR này.
+               Hệ thống SHALL cung cấp liên kết điều hướng sang màn chi tiết uy tín đánh giá
+               công khai (UC-30 / SCR-018) để Authenticated User xem sâu hơn.
 Classification: SYSTEM-SUPPORTED
-Actor:         Guest hoặc Authenticated User
+Actor:         Authenticated User
 Trigger:       Người dùng mở public profile
 Inputs:        organization_id
-Outputs:       ReputationSummaryView (read-only, inline trên public profile)
+Outputs:       ReputationSummaryView + liên kết đến SCR-018
 Business Rules: BR-1105
 Acceptance Criteria:
   Given   public profile đang hiển thị và tổ chức có đánh giá
   When    hệ thống nạp dữ liệu
   Then    hệ thống SHALL hiển thị tóm tắt uy tín (điểm trung bình, tổng đánh giá)
+  And     hệ thống SHALL hiển thị liên kết "Xem chi tiết uy tín" đến SCR-018
 
   Given   tổ chức chưa có đánh giá nào
   When    hệ thống nạp dữ liệu
   Then    hệ thống SHALL hiển thị "Chưa có đánh giá"
-
-  Given   Guest đang xem public profile
-  When    Guest tìm cách truy cập chi tiết uy tín
-  Then    hệ thống SHALL KHÔNG cung cấp điều hướng sang SCR-018
 Priority:      SHOULD
 ```
 
@@ -204,12 +199,11 @@ Type:        Content selection
 
 ID:          BR-1105
 Rule:        Public profile SHALL hiển thị tóm tắt uy tín gồm: điểm uy tín trung bình, điểm
-             chất lượng hợp tác trung bình, và tổng số đánh giá. Tóm tắt này là read-only và
-             KHÔNG cung cấp liên kết điều hướng sang SCR-018 cho Guest.
-             Authenticated User có thể truy cập chi tiết uy tín (UC-30/SCR-018) từ các luồng
-             khác trong hệ thống (SF-07), nằm ngoài phạm vi feature này.
-Source:      Nhu cầu liên kết giữa hồ sơ public và reputation — xác nhận Guest chỉ xem tóm tắt
-Type:        Display
+             chất lượng hợp tác trung bình, và tổng số đánh giá. Vì chỉ Authenticated User
+             mới có quyền xem public profile, hệ thống SHALL cung cấp liên kết điều hướng
+             sang SCR-018 (UC-30) để xem chi tiết đánh giá công khai.
+Source:      Nhu cầu liên kết giữa hồ sơ public và reputation
+Type:        Navigation
 
 ID:          BR-1106
 Rule:        Lịch sử public KHÔNG hiển thị các thông tin nhạy cảm sau:
