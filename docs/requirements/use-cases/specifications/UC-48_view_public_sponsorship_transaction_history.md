@@ -1,13 +1,13 @@
 # UC-48: Xem lịch sử giao dịch tài trợ công khai
 
 **Brief Description**
-> Guest hoặc Authenticated User xem danh sách lịch sử công khai các giao dịch tài trợ đã hoàn tất của một tổ chức theo vai trò Sponsor, nhằm đánh giá mức độ tham gia tài trợ và độ tin cậy công khai của tổ chức.
+> Authenticated User xem danh sách lịch sử công khai các giao dịch tài trợ đã hoàn tất của một tổ chức theo vai trò Sponsor, nhằm đánh giá mức độ tham gia tài trợ và độ tin cậy công khai của tổ chức.
 
 **Actors**
 
 | Role | Actor | Notes |
 |------|-------|-------|
-| Primary | Guest hoặc Authenticated User | Người xem lịch sử public |
+| Primary | Authenticated User | Người xem lịch sử public |
 | Secondary | System | Truy xuất và hiển thị lịch sử |
 
 **Preconditions**
@@ -23,7 +23,7 @@
 
 | Step | Actor | Action / System Response |
 |------|-------|--------------------------|
-| 1 | Guest / AU | Chọn tab lịch sử giao dịch |
+| 1 | Authenticated User | Chọn tab lịch sử giao dịch |
 | 2 | System | Truy xuất danh sách lịch sử giao dịch tài trợ công khai của tổ chức |
 | 3 | System | Áp dụng quy tắc lọc public: chỉ hiển thị các giao dịch đủ điều kiện công khai (BR-1102, BR-1106) |
 | 4 | System | Hiển thị tối đa 5 mục theo thứ tự mới nhất trước (BR-1103) |
@@ -44,14 +44,14 @@
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
-| 4a | Guest / AU | Nhấn "Xem thêm" (load more) |
+| 4a | Authenticated User | Nhấn "Xem thêm" (load more) |
 | 4b | System | Tải và hiển thị 5 mục tiếp theo |
 
 > AF-48.c: Áp dụng bộ lọc (triggered at Step 1)
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
-| 1a | Guest / AU | Chọn bộ lọc theo năm hoặc hình thức tài trợ |
+| 1a | Authenticated User | Chọn bộ lọc theo năm hoặc hình thức tài trợ |
 | 1b | System | Áp dụng bộ lọc và hiển thị kết quả phù hợp |
 | 1c | System | Nếu không có kết quả, hiển thị empty state phù hợp |
 

@@ -86,6 +86,6 @@ Không có exception flow đặc biệt cho use case này.
 
 - Điểm uy tín được tính tự động và cập nhật real-time khi có đánh giá mới (FR-0703)
 - Đánh giá FLAGGED hoặc REMOVED không hiển thị
-- Có thể được truy cập từ SCR-005, SCR-006 (cho Authenticated User)
-- SCR-026 (public profile) hiển thị tóm tắt uy tín nhưng KHÔNG điều hướng sang UC-30/SCR-018 cho Guest. Guest chỉ xem tóm tắt trên SCR-026 (FR-1104, BR-1105)
-- Liên kết: UC-08, UC-09, UC-29
+- Có thể được truy cập từ SCR-005, SCR-006, và SCR-026 (cho Authenticated User)
+- SCR-026 (public profile) hiển thị tóm tắt uy tín và cung cấp liên kết "Xem chi tiết uy tín" dẫn sang UC-30/SCR-018 (FR-1104, BR-1105). Chỉ AU truy cập SCR-026.
+- Liên kết: UC-08, UC-09, UC-29, UC-46 (<<extend>>)
