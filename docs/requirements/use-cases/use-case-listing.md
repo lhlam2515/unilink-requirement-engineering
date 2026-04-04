@@ -153,6 +153,18 @@ làm việc duy nhất.
 
 ---
 
+### SF-11: Public Organization Profile & Sponsorship History
+
+| UC ID | Tên Use Case | Primary Actor | Source FRs | File |
+|-------|-------------|---------------|------------|------|
+| UC-46 | Xem hồ sơ tổ chức công khai | Guest hoặc Authenticated User | FR-1101, FR-1104 | [UC-46](specifications/UC-46_view_public_organization_profile.md) |
+| UC-47 | Xem lịch sử hồ sơ tài trợ công khai | Guest hoặc Authenticated User | FR-1102 | [UC-47](specifications/UC-47_view_public_sponsorship_history.md) |
+| UC-48 | Xem lịch sử giao dịch tài trợ công khai | Guest hoặc Authenticated User | FR-1103 | [UC-48](specifications/UC-48_view_public_sponsorship_transaction_history.md) |
+
+> **Ghi chú**: FR-1104 (Tóm tắt uy tín) được hiển thị inline trên UC-46 dưới dạng read-only summary. Guest KHÔNG được điều hướng sang UC-30/SCR-018. Chỉ tổ chức VERIFIED mới có public profile (BR-1101).
+
+---
+
 ## Thống kê
 
 | Nhóm Feature | Số lượng UC |
@@ -167,7 +179,8 @@ làm việc duy nhất.
 | SF-08: Account Registration & Authentication | 4 |
 | SF-09: Organization Profile & Document Management | 3 |
 | SF-10: Organization Verification & Moderation | 5 |
-| **Tổng cộng** | **45** |
+| SF-11: Public Organization Profile & Sponsorship History | 3 |
+| **Tổng cộng** | **48** |
 
 ---
 

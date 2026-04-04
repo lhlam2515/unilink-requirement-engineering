@@ -36,6 +36,8 @@ tại một extension point cụ thể, chỉ khi điều kiện mở rộng đ�
 | 13 | UC-43 (Phê duyệt hồ sơ) | UC-42 (Xem chi tiết hồ sơ xác thực) | Sau khi Admin xem xong chi tiết hồ sơ | Admin quyết định phê duyệt hồ sơ |
 | 14 | UC-44 (Từ chối hồ sơ) | UC-42 (Xem chi tiết hồ sơ xác thực) | Sau khi Admin xem xong chi tiết hồ sơ | Admin quyết định từ chối hồ sơ |
 | 15 | UC-45 (Yêu cầu bổ sung) | UC-42 (Xem chi tiết hồ sơ xác thực) | Sau khi Admin xem xong chi tiết hồ sơ | Admin quyết định yêu cầu bổ sung thông tin |
+| 16 | UC-47 (Xem lịch sử hồ sơ tài trợ công khai) | UC-46 (Xem hồ sơ tổ chức công khai) | Khi actor chọn tab lịch sử tài trợ | Actor muốn xem lịch sử public của Organizer |
+| 17 | UC-48 (Xem lịch sử giao dịch tài trợ công khai) | UC-46 (Xem hồ sơ tổ chức công khai) | Khi actor chọn tab lịch sử giao dịch | Actor muốn xem lịch sử public của Sponsor |
 
 ---
 
@@ -114,6 +116,12 @@ Giai đoạn 7: Đánh giá sau hợp đồng
   Contract kết thúc ──→ UC-29 → UC-30
                         │
                         └── UC-31 (Báo cáo vi phạm)
+
+Giai đoạn 8: Hồ sơ tổ chức công khai
+  Public profile (VERIFIED) ──→ UC-46 ──┬── UC-47 (Organizer history)
+                                        └── UC-48 (Sponsor history)
+  Note: UC-46 hiển thị tóm tắt uy tín (read-only), nhưng KHÔNG
+        điều hướng sang UC-30/SCR-018 cho Guest.
 ```
 
 ---
@@ -165,6 +173,9 @@ Giai đoạn 7: Đánh giá sau hợp đồng
 | UC-29 | Contract kết thúc (validity_end < today hoặc obligations CONFIRMED) | UC-30 |
 | UC-30 | UC-29 (có đánh giá APPROVED) | — |
 | UC-31 | UC-30 (đánh giá hiển thị công khai) | — |
+| UC-46 | Public profile đủ điều kiện (VERIFIED) | UC-47, UC-48 |
+| UC-47 | UC-46 (mở tab lịch sử tài trợ) | — |
+| UC-48 | UC-46 (mở tab lịch sử giao dịch) | — |
 | UC-32 | Có hồ sơ PUBLISHED hoặc profile ACTIVE | UC-08, UC-09 |
 | UC-33 | UC-20 (contract DRAFTING hoặc CONFIRMED, chưa SIGNED) | UC-20 (reset về DRAFTING), Deal → IN_PROGRESS |
 
@@ -260,11 +271,18 @@ graph TB
         UC31["UC-31: Báo cáo vi phạm"]
     end
 
+    subgraph SF11["SF-11: Public Organization Profile & Sponsorship History"]
+      UC46["UC-46: Xem hồ sơ tổ chức công khai"]
+      UC47["UC-47: Xem lịch sử hồ sơ tài trợ công khai"]
+      UC48["UC-48: Xem lịch sử giao dịch tài trợ công khai"]
+    end
+
     %% Actor connections — SF-08
     GUE --- UC34
     GUE --- UC35
     GUE --- UC36
     GUE --- UC37
+    GUE --- UC46
 
     %% Actor connections — SF-09
     AU --- UC38
@@ -278,7 +296,7 @@ graph TB
     ADM --- UC44
     ADM --- UC45
 
-    %% Actor connections — SF-01~07
+    %% Actor connections — SF-01~07, SF-11
     ORG --- UC01
     ORG --- UC02
     ORG --- UC03
@@ -312,6 +330,8 @@ graph TB
     AU --- UC29
     AU --- UC30
     AU --- UC31
+    GUE --- UC47
+    GUE --- UC48
     ADM --- UC31
     SYS --- UC32
 
@@ -321,7 +341,7 @@ graph TB
     UC21 -.->|"«include»"| UC20
     UC41 -.->|"«include»"| UC42
 
-    %% Extend relationships — BP01
+    %% Extend relationships — BP01 + SF-11
     UC10 -.->|"«extend»"| UC08
     UC10 -.->|"«extend»"| UC09
     UC11 -.->|"«extend»"| UC08
@@ -334,6 +354,8 @@ graph TB
     UC27 -.->|"«extend»"| UC25
     UC31 -.->|"«extend»"| UC30
     UC33 -.->|"«extend»"| UC20
+    UC47 -.->|"«extend»"| UC46
+    UC48 -.->|"«extend»"| UC46
 
     %% Extend relationships — BP02
     UC43 -.->|"«extend»"| UC42
@@ -347,7 +369,7 @@ graph TB
 
 | Loại quan hệ | Số lượng |
 |---|---|
-| `<<extend>>` | 15 |
+| `<<extend>>` | 17 |
 | `<<include>>` | 4 |
 | Phụ thuộc tuần tự | 40+ |
 
@@ -440,6 +462,23 @@ graph TB
 
 ---
 
+### Module 5: Public Organization Profile
+
+**Use Cases**: UC-46 ~ UC-48
+
+**Mô tả**: Cung cấp hồ sơ tổ chức công khai, lịch sử tài trợ công khai, và lịch sử giao dịch
+công khai cho khách truy cập tra cứu. Đây là lớp read-only tách biệt với reputation detail.
+
+**Bounded Context**: Public Profile, Public History, Visibility
+
+**Đặc điểm**:
+
+- Read-only public surface cho khách truy cập
+- Hiển thị dữ liệu public đã biên tập, không lộ thông tin nhạy cảm
+- UC-30 được tái sử dụng như màn chi tiết reputation từ public hub
+
+---
+
 ## Ghi chú về Quan hệ Use Case
 
 - **`<<extend>>`** được sử dụng khi một UC bổ sung hành vi **tùy chọn** vào UC cơ sở.
@@ -450,9 +489,15 @@ graph TB
   Xác thực người dùng được xử lý qua generalization `Authenticated User` thay vì
   tạo UC "Đăng nhập" riêng với `<<include>>` ở mọi UC. UC-41 <<include>> UC-42 là
   trường hợp bắt buộc tương tự UC-06 <<include>> UC-08.
+- **Public profile module** (UC-46~UC-48) là lớp public read-only phía trên reputation.
+  UC-46 đóng vai trò public hub và hiển thị tóm tắt uy tín (read-only). Guest KHÔNG được
+  điều hướng sang UC-30/SCR-018. Authenticated User truy cập UC-30 từ các luồng khác
+  (SCR-005, SCR-006) trong SF-07.
 - **Phụ thuộc tuần tự** phản ánh quy trình nghiệp vụ: đăng ký → xác thực → hồ sơ →
   tìm kiếm → lời mời → thương thảo → hợp đồng → nghĩa vụ → đánh giá. Giai đoạn 0 (BP02)
-  là prerequisite cho tất cả giai đoạn sau (BP01).
+  là prerequisite cho tất cả giai đoạn sau (BP01). Public profile (UC-46~UC-48) là
+  luồng đọc công khai, không phụ thuộc tuần tự vào BP01 nhưng phụ thuộc vào dữ liệu public
+  đã được công bố.
 - **UC-33 (Hủy đồng thuận)** là extend mới, cho phép quay lui từ giai đoạn hợp đồng
   về IN_PROGRESS nếu chưa ký. Đây là safety valve cho quy trình ký kết.
 - **Guest actor** (mới từ BP02) là entry point cho hệ thống — sau khi đăng ký/đăng nhập
