@@ -20,9 +20,9 @@ Assumptions:
     gần nhất (theo BP02 — Bước 3).
   - [ASSUMED] Hồ sơ đã VERIFIED không thể chỉnh sửa trực tiếp (theo BP02 — Lưu ý 9).
 Gaps Detected:
-  - BP02 nêu "tài liệu minh chứng được lưu tạm thời và xóa sau 7 ngày" nhưng không rõ 7 ngày
-    kể từ khi nào (tải lên? phê duyệt? từ chối?) → cần làm rõ.
-  - BP02 không nêu giới hạn số lần gửi lại hồ sơ xác thực sau khi bị từ chối.
+   - BP02 nêu "tài liệu minh chứng được lưu tạm thời và xóa sau 7 ngày" nhưng không rõ 7 ngày
+     kể từ khi nào (tải lên? phê duyệt? từ chối?) → đã giải quyết tại BR-0907.
+   - [RESOLVED] BP02 không nêu giới hạn số lần gửi lại hồ sơ xác thực → KHÔNG giới hạn.
 ```
 
 ---
@@ -62,7 +62,7 @@ Inputs:
                business_license_doc (file)
 Outputs:       Tài liệu đã lưu trữ, document_id (UUID), upload_status,
                hồ sơ tổ chức đã cập nhật
-Business Rules: BR-0901, BR-0902
+Business Rules: BR-0901, BR-0902, BR-0908
 Acceptance Criteria:
   Given   organizer đã đăng ký và chưa gửi hồ sơ xác thực
   When    organizer tải lên file PDF "giấy quyết định thành lập" kích thước 3MB
@@ -149,6 +149,10 @@ Acceptance Criteria:
   Given   tài khoản đã VERIFIED
   When    người dùng cố gửi hồ sơ xác thực lại
   Then    hệ thống SHALL từ chối "Tài khoản đã được xác thực"
+
+  Given   người dùng gửi hồ sơ xác thực thành công
+  When    hệ thống xử lý xong
+  Then    hệ thống SHALL gửi thông báo cho Admin (in-app + email) "Có hồ sơ mới chờ kiểm duyệt"
 Priority:      MUST
 ```
 
@@ -242,7 +246,8 @@ Type:        Time-based
 ID:          BR-0903
 Rule:        Quyền chỉnh sửa hồ sơ tổ chức phụ thuộc vào verification_status:
              - UNVERIFIED: chỉnh sửa tất cả.
-             - PENDING_REVIEW: chỉnh sửa được, hồ sơ đánh dấu "đã cập nhật".
+             - PENDING_REVIEW: chỉnh sửa được, hệ thống ghi nhận field-level diff
+               và gửi thông báo cho Admin (in-app + email) kèm danh sách trường đã thay đổi.
              - VERIFIED: KHÔNG chỉnh sửa trực tiếp.
              - REJECTED: chỉnh sửa tất cả để gửi lại.
              - INFO_REQUIRED: chỉnh sửa tất cả để bổ sung.
@@ -278,6 +283,15 @@ Rule:        Tài liệu minh chứng được lưu tạm thời và PHẢI đư
              Tài liệu thuộc hồ sơ đang PENDING_REVIEW hoặc INFO_REQUIRED KHÔNG bị xóa.
 Source:      BP02 — Lưu ý 9 (Tài liệu minh chứng xóa sau 7 ngày theo quy định bảo mật)
 Type:        Time-based
+
+ID:          BR-0908
+Rule:        Khi upload file tài liệu minh chứng:
+             - Nếu file có cùng tên với file đã tồn tại trong cùng loại tài liệu: hệ thống
+               PHẢI hỏi người dùng xác nhận thay thế hoặc hủy.
+             - Nếu file có tên khác: bổ sung file mới vào danh sách.
+             - Người dùng CÓ THỂ đổi tên hiển thị (display_name) của file trước khi xác nhận upload.
+Source:      Nhu cầu quản lý file upload — xác nhận từ stakeholder
+Type:        UI Behavior
 ```
 
 ---

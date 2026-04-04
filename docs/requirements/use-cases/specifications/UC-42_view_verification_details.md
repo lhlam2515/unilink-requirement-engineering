@@ -69,6 +69,15 @@
 |------|----------------|--------|
 | 6a | System | Hiển thị lịch sử: lần gửi trước + quyết định (REJECTED/INFO_REQUIRED) + lý do + lần gửi hiện tại |
 
+> AF-42.e: Hồ sơ đã được cập nhật trong khi PENDING_REVIEW (triggered at Step 3)
+
+| Step | Actor / System | Action |
+|------|----------------|--------|
+| 3a | System | Phát hiện hồ sơ có cờ "đã cập nhật kể từ lần gửi cuối" |
+| 3b | System | Hiển thị badge/indicator "Hồ sơ đã được cập nhật" |
+| 3c | System | Hiển thị danh sách các trường đã thay đổi (field-level diff) với giá trị cũ → giá trị mới |
+| 3d | Admin | Xem nhanh các thay đổi để đánh giá mà không cần so sánh thủ công |
+
 ---
 
 **Exception Flows**
@@ -99,7 +108,7 @@
 
 **Business Rules**
 
-- BR-1002: Admin phải có quyền xem và tải về tất cả tài liệu minh chứng. Lịch sử xác thực hiển thị TẤT CẢ lần gửi/xử lý theo thứ tự thời gian
+- BR-1002: Admin phải có quyền xem và tải về tất cả tài liệu minh chứng. Lịch sử xác thực hiển thị TẤT CẢ lần gửi/xử lý theo thứ tự thời gian. Nếu hồ sơ được cập nhật trong khi PENDING_REVIEW, hiển thị field-level diff cho Admin
 
 ---
 
@@ -108,3 +117,4 @@
 - Việc kiểm tra MST doanh nghiệp được thực hiện THỦ CÔNG — Admin đối chiếu bên ngoài hệ thống
 - UC-42 là base UC cho ba extend: UC-43 (Phê duyệt), UC-44 (Từ chối), UC-45 (Yêu cầu bổ sung)
 - Liên kết: UC-41 (<<include>> từ danh sách), UC-43, UC-44, UC-45 (<<extend>>)
+- Khi hồ sơ có cờ "đã cập nhật": Admin thấy ngay danh sách trường thay đổi (field-level diff) để phê duyệt nhanh hơn

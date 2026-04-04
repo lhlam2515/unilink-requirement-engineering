@@ -41,10 +41,11 @@
 | 7 | System | Tạo VerificationRequest mới với status = PENDING |
 | 8 | System | Chuyển verification_status của tài khoản sang PENDING_REVIEW |
 | 9 | System | Ghi nhận submitted_at và thiết lập deadline_at = submitted_at + 14 ngày |
-| 10 | System | Gửi email "Hồ sơ xác thực của bạn đã được tiếp nhận" |
-| 11 | System | Gửi thông báo in-app tương tự |
-| 12 | System | Hiển thị xác nhận "Hồ sơ đã được gửi và đang chờ kiểm duyệt" |
-| 13 | System | Use case kết thúc thành công |
+| 10 | System | Gửi email "Hồ sơ xác thực của bạn đã được tiếp nhận" cho người dùng |
+| 11 | System | Gửi thông báo in-app cho người dùng |
+| 12 | System | Gửi thông báo cho Admin (in-app + email): "Có hồ sơ xác thực mới từ [tên tổ chức] chờ kiểm duyệt" |
+| 13 | System | Hiển thị xác nhận "Hồ sơ đã được gửi và đang chờ kiểm duyệt" |
+| 14 | System | Use case kết thúc thành công |
 
 ---
 
@@ -110,6 +111,7 @@
 - verification_status đã chuyển sang PENDING_REVIEW
 - submitted_at và deadline_at đã được ghi nhận
 - Actor nhận thông báo xác nhận qua email và in-app
+- Admin nhận thông báo (in-app + email) về hồ sơ mới chờ kiểm duyệt
 - Hồ sơ xuất hiện trong danh sách chờ duyệt của Admin (UC-41)
 
 *Failure:*
@@ -129,7 +131,7 @@
 
 **Notes / Assumptions**
 
-- Tổ chức có thể gửi hồ sơ xác thực nhiều lần (sau REJECTED hoặc INFO_REQUIRED) — mỗi lần tạo VerificationRequest mới
+- Tổ chức có thể gửi hồ sơ xác thực nhiều lần (sau REJECTED hoặc INFO_REQUIRED) — mỗi lần tạo VerificationRequest mới. KHÔNG giới hạn số lần gửi lại
 - Phân quyền tự động (FR-0904) được kích hoạt ngầm sau khi hồ sơ được phê duyệt — không phải hành vi trực tiếp trong UC này
 - Tài liệu minh chứng sẽ được tự động xóa sau 7 ngày kể từ xử lý hoàn tất (FR-0905 — nhúng vào system behavior)
 - Liên kết: UC-38 (bổ sung tài liệu), UC-39 (chỉnh sửa), UC-41 (Admin xem danh sách)

@@ -51,10 +51,12 @@
 | Step | Actor / System | Action |
 |------|----------------|--------|
 | 4a | System | Phát hiện verification_status = PENDING_REVIEW |
-| 4b | System | Hiển thị cảnh báo "Hồ sơ đang chờ kiểm duyệt. Thay đổi sẽ được đánh dấu để kiểm duyệt viên biết." |
+| 4b | System | Hiển thị cảnh báo "Hồ sơ đang chờ kiểm duyệt. Thay đổi sẽ được ghi nhận và gửi thông báo cho kiểm duyệt viên." |
 | 5a | System | Hiển thị form chỉnh sửa bình thường |
 | – | – | Tiếp tục từ Step 6 |
-| 9a | System | Cập nhật hồ sơ và đánh dấu "đã cập nhật kể từ lần gửi cuối" |
+| 9a | System | Cập nhật hồ sơ và ghi nhận chi tiết các trường đã thay đổi (field-level diff) so với lần gửi cuối |
+| 9b | System | Đánh dấu hồ sơ "đã cập nhật kể từ lần gửi cuối" |
+| 9c | System | Gửi thông báo cho Admin (in-app + email): "Tổ chức [tên] đã cập nhật hồ sơ đang chờ kiểm duyệt" kèm danh sách trường thay đổi |
 
 > AF-39.b: Chỉnh sửa khi REJECTED (triggered at Step 4)
 
@@ -102,7 +104,7 @@
 
 - Hồ sơ tổ chức đã được cập nhật với thông tin mới
 - updated_at đã được ghi nhận
-- Nếu đang PENDING_REVIEW: hồ sơ được đánh dấu "đã cập nhật"
+- Nếu đang PENDING_REVIEW: hồ sơ được đánh dấu "đã cập nhật" kèm field-level diff, Admin được thông báo
 
 *Failure:*
 

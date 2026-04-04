@@ -38,7 +38,7 @@
 | 5 | Authenticated User | Nhập thông tin tùy chọn và/hoặc chọn file tài liệu minh chứng để tải lên |
 | 6 | System | Xác thực định dạng file (chỉ chấp nhận PDF, JPEG, PNG, WebP) theo BR-0901 |
 | 7 | System | Xác thực kích thước file không vượt quá 10MB theo BR-0901 |
-| 8 | System | Lưu trữ tài liệu và gán document_id (UUID) duy nhất |
+| 8 | System | Kiểm tra trùng tên file trong cùng loại tài liệu theo BR-0908. Nếu không trùng, lưu trữ tài liệu và gán document_id (UUID) duy nhất |
 | 9 | System | Cập nhật hồ sơ tổ chức với thông tin bổ sung |
 | 10 | System | Hiển thị tài liệu đã tải lên trong danh sách minh chứng với trạng thái thành công |
 | 11 | System | Use case kết thúc thành công — hồ sơ đã được bổ sung thông tin và tài liệu |
@@ -67,6 +67,22 @@
 |------|----------------|--------|
 | 5a | Authenticated User | Chọn thêm file tài liệu khác để tải lên |
 | – | – | Hệ thống lặp lại Step 6–10 cho mỗi file |
+
+> AF-38.d: File trùng tên trong cùng loại tài liệu (triggered at Step 8)
+
+| Step | Actor / System | Action |
+|------|----------------|--------|
+| 8a | System | Phát hiện đã tồn tại file có cùng tên trong loại tài liệu đang upload |
+| 8b | System | Hiển thị xác nhận "File [tên file] đã tồn tại. Bạn muốn thay thế file cũ không?" |
+| 8c | Authenticated User | Chọn "Thay thế" → System xóa file cũ và lưu file mới với cùng document_id |
+| 8d | Authenticated User | Hoặc chọn "Hủy" → Quay lại Step 5, file cũ giữ nguyên |
+
+> AF-38.e: Đổi tên file khi upload (triggered at Step 5)
+
+| Step | Actor / System | Action |
+|------|----------------|--------|
+| 5b | Authenticated User | Chỉnh sửa tên hiển thị (display_name) của file trước khi xác nhận upload |
+| 5c | System | Lưu file với display_name do người dùng chỉ định (giữ nguyên file gốc) |
 
 ---
 
@@ -116,6 +132,7 @@
 
 - BR-0901: Tài liệu minh chứng phải có định dạng PDF, JPEG, PNG, hoặc WebP. Kích thước tối đa 10MB/file
 - BR-0902: Thông tin và tài liệu bổ sung cần hoàn tất trong vòng 14 ngày. Hệ thống gửi nhắc nhở khi còn 3 ngày
+- BR-0908: Khi upload file trùng tên trong cùng loại tài liệu: hệ thống hỏi xác nhận thay thế. Nếu tên file khác thì bổ sung. Người dùng có thể đổi tên hiển thị file trước khi upload
 
 ---
 
