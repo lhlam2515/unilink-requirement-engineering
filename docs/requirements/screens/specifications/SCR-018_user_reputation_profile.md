@@ -23,6 +23,16 @@
 | Navigation boundary | ✅ Section trên profile công khai, có thể standalone |
 | Independently testable | ✅ |
 
+## Mối quan hệ với SCR-026
+
+| Tiêu chí | SCR-018 | SCR-026 |
+|---|---|---|
+| Vai trò trong luồng | Màn chi tiết về reputation/reviews | Màn public hub của tổ chức |
+| Phạm vi dữ liệu | Điểm uy tín, review list, report flow | Identity, verification badge, tóm tắt uy tín, lịch sử public |
+| Mức độ chi tiết | Sâu | Rộng |
+| Điều hướng | Có thể được mở từ SCR-026 khi cần xem sâu | Có thể dẫn sang SCR-018 từ thẻ "Xem chi tiết uy tín" |
+| Quan hệ | Màn con / drill-down chuyên sâu | Màn cha / entry point công khai |
+
 ---
 
 ## Dữ liệu hiển thị (Read-only Data)
@@ -76,13 +86,14 @@
 |----|-----------|
 | SCR-005 (Proposal Detail) | Section "Uy tín BTC" |
 | SCR-006 (Business Detail) | Section "Uy tín doanh nghiệp" |
+| SCR-026 (Public Organization Profile) | Thẻ/tóm tắt uy tín |
 | Hồ sơ công khai | Truy cập trực tiếp |
 
 ## Điều hướng đi (Navigation Out)
 
 | Khi | Đến |
 |-----|-----|
-| Quay lại | SCR-005 hoặc SCR-006 (tùy context) |
+| Quay lại | SCR-005, SCR-006, hoặc SCR-026 (tùy context) |
 
 ---
 
