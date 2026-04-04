@@ -7,9 +7,9 @@
 | **Screen ID** | SCR-026 |
 | **Screen Name** | User_PublicOrganizationProfile_Screen |
 | **Mục đích** | Người dùng xem hồ sơ tổ chức công khai, tóm tắt uy tín, và lịch sử công khai phù hợp theo vai trò duy nhất của tổ chức. Chỉ hiển thị cho tổ chức đã VERIFIED. |
-| **Actor chính** | Guest hoặc Authenticated User |
+| **Actor chính** | Authenticated User |
 | **Quy trình nghiệp vụ** | SF-11 / Hồ sơ tổ chức công khai và lịch sử tài trợ |
-| **Use case liên quan** | UC-46, UC-47, UC-48 |
+| **Use case liên quan** | UC-46, UC-47, UC-48, UC-30 (extend từ UC-46) |
 
 ---
 
@@ -20,10 +20,10 @@
 | Context/goal riêng biệt | Public hub để xem hồ sơ tổ chức và lịch sử công khai | SCR-018 tập trung vào uy tín chi tiết và đánh giá |
 | Data scope riêng | Identity, verification badge, reputation summary (read-only), history lists | SCR-018 chỉ có điểm uy tín, điểm chất lượng, review list |
 | Action set riêng | Chọn tab lịch sử, lọc, phân trang, nhấn link chi tiết sự kiện/DN | SCR-018 cho xem thêm đánh giá và báo cáo đánh giá |
-| Navigation boundary | Có thể vào từ URL public, từ link chia sẻ, hoặc từ màn chi tiết liên quan | SCR-018 là màn chuyên sâu, chỉ cho Authenticated User |
+| Navigation boundary | Có thể vào từ tìm kiếm nội bộ, link chia sẻ, hoặc từ màn chi tiết liên quan (chỉ AU) | SCR-018 là màn chuyên sâu, chỉ cho Authenticated User |
 | Independently testable | Có | Có |
 
-> **Kết luận quan hệ**: SCR-026 là màn public hub cấp cao (Guest + AU). SCR-018 là màn chuyên sâu về reputation/reviews (chỉ AU). Guest KHÔNG được điều hướng từ SCR-026 sang SCR-018.
+> **Kết luận quan hệ**: SCR-026 là màn public hub cấp cao (Authenticated User). SCR-018 là màn chuyên sâu về reputation/reviews (chỉ AU). Guest KHÔNG được điều hướng từ SCR-026 sang SCR-018.
 
 ---
 
@@ -32,7 +32,7 @@
 | Khía cạnh | SCR-026 | SCR-018 | SCR-006 |
 |---|---|---|---|
 | Mục tiêu chính | Nhận diện tổ chức + lịch sử công khai | Đánh giá độ tin cậy qua reviews | Xem chi tiết DN để mời tài trợ |
-| Người dùng mục tiêu | Guest, đối tác | AU đang cân nhắc hợp tác | Organizer đã đăng nhập |
+| Người dùng mục tiêu | Authenticated User | AU đang cân nhắc hợp tác | Organizer đã đăng nhập |
 | Dữ liệu chủ đạo | Tên, logo, xác thực, uy tín summary, lịch sử public | Điểm uy tín, review list | Tên, logo, ngân sách, sponsorship goal |
 | Hành động chính | Chọn tab, lọc, xem thêm lịch sử | Xem thêm review, báo cáo vi phạm | Bookmark, gửi lời mời tài trợ |
 | Mức độ chi tiết | Tổng quan công khai | Chuyên sâu reputation | Chuyên sâu business profile |
@@ -51,12 +51,13 @@
 - Khu vực hoạt động
 - Mô tả ngắn công khai
 
-### Khu vực tóm tắt uy tín (read-only, không có link đi SCR-018)
+### Khu vực tóm tắt uy tín
 
 - Điểm uy tín trung bình (X.X/5 ⭐)
 - Điểm chất lượng hợp tác trung bình
 - Tổng số đánh giá
-- Nếu chưa có đánh giá: hiển thị "Chưa có đánh giá"
+- Liên kết "Xem chi tiết uy tín" dẫn sang SCR-018 (UC-30)
+- Nếu chưa có đánh giá: hiển thị "Chưa có đánh giá", ẩn liên kết
 
 ### Khu vực lịch sử công khai (chỉ một loại theo vai trò)
 
@@ -111,7 +112,7 @@ Không có input trực tiếp trên screen chính.
 - BR-1102: Không hiển thị draft, thương thảo nội bộ, điều khoản hợp đồng, hoặc dữ liệu nhạy cảm
 - BR-1103: Danh sách history tối đa 5 mục gần nhất, page size cố định, hỗ trợ load more
 - BR-1104: Chỉ hiển thị một loại history theo vai trò duy nhất của tổ chức
-- BR-1105: Reputation summary là read-only, KHÔNG có link sang SCR-018 cho Guest
+- BR-1105: Reputation summary + liên kết điều hướng sang SCR-018 (UC-30)
 - BR-1106: Không hiển thị giá trị tài trợ, điều khoản hợp đồng; có hiển thị tên sự kiện, năm, hình thức, trạng thái, nhãn tóm tắt
 
 ---
@@ -136,10 +137,11 @@ Không có input trực tiếp trên screen chính.
 
 | Khi | Đến |
 |-----|-----|
+| Nhấn "Xem chi tiết uy tín" | SCR-018 — Chi tiết uy tín (UC-30, <<extend>> từ UC-46) |
 | Nhấn vào mục lịch sử có link | View chi tiết sự kiện hoặc hồ sơ BTC tương ứng |
 | Quay lại | Màn nguồn trước đó |
 
-> **Ghi chú**: KHÔNG có navigation out từ SCR-026 sang SCR-018 cho Guest. Authenticated User truy cập SCR-018 từ các luồng khác (SCR-005, SCR-006) trong hệ thống (SF-07).
+> **Ghi chú**: Authenticated User có thể điều hướng sang SCR-018 qua liên kết "Xem chi tiết uy tín" (UC-30 extend từ UC-46).
 
 ---
 
@@ -160,7 +162,7 @@ Không có input trực tiếp trên screen chính.
 
 - Profile header
 - Verification badge (luôn hiển thị VERIFIED)
-- Reputation summary card (read-only, no link to SCR-018)
+- Reputation summary card (read-only, with link to SCR-018)
 - History section (single type based on role)
 - History cards / list items
 - Filter bar
