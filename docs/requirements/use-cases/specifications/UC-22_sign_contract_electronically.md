@@ -1,7 +1,7 @@
 # UC-22: Ký hợp đồng điện tử
 
 **Brief Description**
-> Authenticated User (Organizer hoặc Sponsor) ký chữ ký điện tử lên hợp đồng đã được xác nhận nội dung (CONFIRMED). Hệ thống hỗ trợ chữ ký vẽ tay hoặc gõ tên. Khi CẢ HAI bên đã ký, hợp đồng chuyển sang trạng thái SIGNED và hệ thống tự động tạo danh sách nghĩa vụ tài trợ.
+> Authenticated User (Organizer hoặc Sponsor) ký chữ ký điện tử lên hợp đồng đã được xác nhận nội dung (CONFIRMED). Hệ thống hỗ trợ chữ ký vẽ tay hoặc gõ tên. Khi CẢ HAI bên đã ký, hợp đồng chuyển sang trạng thái SIGNED và hệ thống tự động tạo danh sách nghĩa vụ tài trợ. [UPDATED — BP03] Hợp đồng PHẢI được ký trong 72 giờ kể từ khi hard-lock (2/2 thanh toán). Hệ thống hiển thị đếm ngược thời hạn ký.
 
 ---
 
@@ -18,6 +18,8 @@
 
 - Actor đã đăng nhập vào hệ thống
 - Hợp đồng đang ở trạng thái CONFIRMED
+- Hợp đồng đang trong giai đoạn hard-lock (cancel_action_enabled = false)
+- signing_deadline_at chưa qua (còn trong 72 giờ)
 - Actor là một trong hai bên liên quan
 - Actor chưa ký hợp đồng này
 
@@ -32,7 +34,7 @@
 
 | Step | Actor | Action / System Response |
 |------|-------|--------------------------| 
-| 1 | Authenticated User | Nhấn "Ký hợp đồng" trên trang hợp đồng CONFIRMED |
+| 1 | Authenticated User | Nhấn "Ký hợp đồng" trên trang hợp đồng CONFIRMED. Hệ thống hiển thị đếm ngược thời hạn ký (còn lại từ 72 giờ) |
 | 2 | System | Hiển thị giao diện ký: chọn hình thức ký (vẽ tay hoặc gõ tên) |
 | 3 | Authenticated User | Vẽ chữ ký hoặc gõ tên đầy đủ |
 | 4 | Authenticated User | Nhấn "Xác nhận ký" |
@@ -82,12 +84,15 @@
 - Hợp đồng chuyển sang trạng thái SIGNED với chữ ký của hai bên
 - Ngày ký (signing_date) được ghi nhận
 - Danh sách nghĩa vụ được tạo tự động (UC-25)
+- Đếm ngược 72 giờ dừng lại
 - Cả hai bên được thông báo
 
 *Success (một bên ký):*
 - Hợp đồng vẫn ở CONFIRMED, chờ bên còn lại
+- Đếm ngược 72 giờ tiếp tục
 
-*Failure:*
+*Failure (quá hạn 72 giờ):*
+- Phát sinh sự kiện vi phạm (SF-14 / UC-49)
 - Hợp đồng không thay đổi
 
 ---
@@ -96,12 +101,14 @@
 
 - BR-0505: Chữ ký điện tử chỉ thực hiện khi hợp đồng CONFIRMED. Mỗi bên ký MỘT LẦN, sau khi ký không thể rút lại
 - BR-0506: Hợp đồng chuyển sang SIGNED khi VÀ CHỈ KHI cả hai bên đều đã ký
+- BR-0510: Hợp đồng PHẢI hoàn tất 2 chữ ký trong 72 giờ kể từ hard-lock
 
 ---
 
 **Notes / Assumptions**
 
 - Phiên bản đầu sử dụng chữ ký điện tử đơn giản (vẽ/gõ), không phải chữ ký số PKI
-- Sau khi SIGNED: có thể xuất PDF (UC-23), yêu cầu hóa đơn VAT (UC-24)
+- Sau khi SIGNED: có thể xuất PDF (UC-23)
 - Nghĩa vụ tài trợ được tạo tự động — theo dõi qua UC-25 đến UC-28
-- Liên kết: UC-21, UC-23, UC-24, UC-25, UC-33
+- Nếu hết 72 giờ mà chưa đủ 2 chữ ký: UC-49 xử lý vi phạm
+- Liên kết: UC-21, UC-23, UC-25, UC-49, UC-50

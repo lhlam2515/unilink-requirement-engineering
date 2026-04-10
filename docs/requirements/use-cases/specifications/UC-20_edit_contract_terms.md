@@ -100,4 +100,4 @@ Không có alternate flow cho use case này.
 - Bản nháp hợp đồng được tạo tự động từ template khi deal AGREED (FR-0501)
 - Cả hai bên đều có quyền chỉnh sửa nội dung
 - Sau khi chỉnh sửa xong, hai bên xác nhận nội dung thông qua UC-21
-- Liên kết: UC-18, UC-21, UC-22, UC-33
+- Liên kết: UC-18, UC-21, UC-22
