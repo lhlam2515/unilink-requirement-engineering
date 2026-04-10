@@ -9,7 +9,7 @@
 | **Mục đích** | Authenticated User xem danh sách tất cả thương vụ (deals) mà mình tham gia, với trạng thái và thông tin tóm tắt |
 | **Actor chính** | Authenticated User (Organizer hoặc Sponsor) |
 | **Quy trình nghiệp vụ** | BP-01 / Bước 3 — Thương thảo hợp đồng tài trợ |
-| **Use case liên quan** | UC-14 (entry point) |
+| **Use case liên quan** | UC-14 (entry point), UC-50 (entry point khi AWAITING_PAYMENT) |
 
 ---
 
@@ -31,7 +31,8 @@ Mỗi deal hiển thị:
 
 - Tên đối tác (partner_name)
 - Tên sự kiện (event_name)
-- Trạng thái deal (status): IN_PROGRESS / AGREED / TERMINATED
+- Trạng thái deal (status): IN_PROGRESS / AWAITING_PAYMENT / AGREED / TERMINATED
+- Trạng thái thanh toán (payment_status): 0/2, 1/2, 2/2 — nếu AWAITING_PAYMENT `[ADDED — BP03]`
 - Trạng thái hợp đồng (contract_status): DRAFTING / CONFIRMED / SIGNED — nếu AGREED
 - Ngày tạo (created_at)
 - Tin nhắn chưa đọc (unread_count)
@@ -43,15 +44,16 @@ Mỗi deal hiển thị:
 
 | Trường | Loại | Ghi chú |
 |--------|------|---------|
-| Bộ lọc trạng thái | Select | ALL / IN_PROGRESS / AGREED / TERMINATED |
+| Bộ lọc trạng thái | Select | ALL / IN_PROGRESS / AWAITING_PAYMENT / AGREED / TERMINATED |
 
 ---
 
 ## Hành động chính (Primary Actions)
 
-| Hành động | Đích đến / Kết quả |
-|-----------|---------------------|
-| **Nhấn vào deal** | Chuyển đến SCR-011 (Deal Negotiation) |
+| Hành động | Đích đến / Kết quả | Điều kiện |
+|-----------|---------------------|----------|
+| **Nhấn vào deal** | Chuyển đến SCR-011 (Deal Negotiation) | IN_PROGRESS / AGREED |
+| **Nhấn vào deal** | Chuyển đến SCR-027 (Service Fee Paywall) | AWAITING_PAYMENT `[ADDED — BP03]` |
 
 ---
 
@@ -72,7 +74,8 @@ Không có business rule riêng cho screen này.
 
 | Khi | Đến |
 |-----|-----|
-| Nhấn vào deal | SCR-011 (Deal Negotiation) |
+| Nhấn vào deal IN_PROGRESS/AGREED | SCR-011 (Deal Negotiation) |
+| Nhấn vào deal AWAITING_PAYMENT | SCR-027 (Service Fee Paywall) `[ADDED — BP03]` |
 
 ---
 
@@ -86,7 +89,8 @@ Không có business rule riêng cho screen này.
 ## UI Components liên quan
 
 - Card list / Data table — danh sách deals
-- Status badge — IN_PROGRESS / AGREED / TERMINATED
+- Status badge — IN_PROGRESS / AWAITING_PAYMENT / AGREED / TERMINATED
+- Payment status badge — 0/2, 1/2, 2/2 (khi AWAITING_PAYMENT) `[ADDED — BP03]`
 - Unread count badge — số tin nhắn chưa đọc
 - Filter bar
 - Pagination

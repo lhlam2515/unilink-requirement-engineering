@@ -6,10 +6,12 @@
 |---|---|
 | **Screen ID** | SCR-014 |
 | **Screen Name** | User_ContractView_Screen |
-| **Mục đích** | Authenticated User xem hợp đồng đã ký dạng read-only, xuất PDF, và yêu cầu hóa đơn VAT (dành cho Sponsor) |
+| **Mục đích** | Authenticated User xem hợp đồng đã ký dạng read-only và xuất PDF |
 | **Actor chính** | Authenticated User (Organizer hoặc Sponsor) |
 | **Quy trình nghiệp vụ** | BP-01 / Bước 4 — Soạn thảo và ký kết hợp đồng tài trợ |
-| **Use case liên quan** | UC-23, UC-24 |
+| **Use case liên quan** | UC-23 |
+
+> **[UPDATED — BP03]** UC-24 (Yêu cầu hóa đơn VAT cho giá trị tài trợ) đã bị **LOẠI BỎ**. Nền tảng chỉ xuất hóa đơn VAT cho Phí quản lý chiến dịch (SF-12, UC-52 — tự động). Modal VAT và tất cả trường nhập liệu VAT đã bị xóa khỏi screen này.
 
 ---
 
@@ -18,8 +20,8 @@
 | Tiêu chí | Đánh giá |
 |---|---|
 | Context/goal riêng biệt | ✅ Xem hợp đồng đã ký — read-only context, khác edit |
-| Data scope riêng | ✅ HĐ SIGNED + chữ ký + VAT invoice |
-| Action set riêng | ✅ Xuất PDF, yêu cầu VAT |
+| Data scope riêng | ✅ HĐ SIGNED + chữ ký |
+| Action set riêng | ✅ Xuất PDF |
 | Navigation boundary | ✅ Post-signature context |
 | Independently testable | ✅ |
 
@@ -32,20 +34,14 @@
 - Mã hợp đồng (contract_number)
 - Ngày ký (signing_date)
 - Trạng thái: SIGNED
-- Thông tin hóa đơn VAT (nếu đã phát hành): số hóa đơn, giá trị, thuế
 
 ---
 
 ## Dữ liệu nhập (Input Fields)
 
-### Modal: Yêu cầu hóa đơn VAT (UC-24 — chỉ Sponsor)
+Không có dữ liệu nhập. Screen hoàn toàn read-only.
 
-| Trường | Loại | Validation | Ghi chú |
-|--------|------|------------|---------|
-| Tên doanh nghiệp | Text input | Bắt buộc | business_name |
-| Mã số thuế | Text input | Bắt buộc, 10 hoặc 13 chữ số | tax_code |
-| Địa chỉ doanh nghiệp | Text input | Bắt buộc | business_address |
-| Mô tả dịch vụ | Textarea | Bắt buộc | service_description |
+> **[REMOVED — BP03]** Modal yêu cầu hóa đơn VAT (UC-24) và tất cả input fields liên quan đã bị loại bỏ.
 
 ---
 
@@ -59,17 +55,18 @@
 
 | Hành động | Đích đến / Kết quả | Điều kiện |
 |-----------|---------------------|-----------|
-| Yêu cầu hóa đơn VAT | Mở modal VAT form (UC-24) | Sponsor + CASH + chưa có hóa đơn |
-| Xem/Tải lại hóa đơn VAT PDF | Tải PDF hóa đơn | Đã có hóa đơn |
 | Xem nghĩa vụ | Chuyển đến SCR-015 (Obligation Dashboard) | — |
 | Đánh giá đối tác | Chuyển đến SCR-019 (Partner Review) | HĐ kết thúc |
+
+> **[REMOVED — BP03]** Hành động "Yêu cầu hóa đơn VAT" và "Xem/Tải lại hóa đơn VAT PDF" đã bị loại bỏ.
 
 ---
 
 ## Quy tắc nghiệp vụ (Business Rules)
 
 - BR-0507: Chỉ HĐ SIGNED mới xuất PDF. Watermark "BẢN GỐC ĐIỆN TỬ"
-- BR-0508: Hóa đơn VAT chỉ cho HĐ SIGNED + CASH. MST 10/13 chữ số. Mỗi HĐ tối đa 1 hóa đơn
+
+> **[REMOVED — BP03]** BR-0508 (Hóa đơn VAT cho HĐ SIGNED + CASH) đã bị loại bỏ.
 
 ---
 
@@ -98,21 +95,17 @@
 | PDF Generating | Đang tạo PDF (UC-23 Main-2~4) |
 | PDF Error | Lỗi tạo PDF (UC-23 EF-23.2) |
 | Not Signed Error | HĐ chưa ký (UC-23 EF-23.1) |
-| VAT Modal | Form yêu cầu hóa đơn |
-| VAT Success Toast | Hóa đơn phát hành thành công |
-| VAT Not Applicable | Hình thức không có CASH (UC-24 EF-24.1) |
-| VAT Invalid Tax Code | MST sai định dạng (UC-24 EF-24.2) |
-| VAT Already Issued | Đã có hóa đơn (UC-24 EF-24.3) |
+
+> **[REMOVED — BP03]** Các states liên quan đến VAT (VAT Modal, VAT Success Toast, VAT Not Applicable, VAT Invalid Tax Code, VAT Already Issued) đã bị loại bỏ.
 
 ## UI Components liên quan
 
 - Contract preview — nội dung HĐ read-only
 - Signature display — hiển thị chữ ký 2 bên
 - Download button — "Xuất PDF"
-- CTA — "Yêu cầu hóa đơn VAT" (conditional)
-- Modal dialog — form VAT
-- Invoice summary card — thông tin hóa đơn đã phát hành
 - Navigation links — nghĩa vụ, đánh giá
+
+> **[REMOVED — BP03]** Các components liên quan đến VAT (CTA "Yêu cầu hóa đơn VAT", Modal dialog form VAT, Invoice summary card) đã bị loại bỏ.
 
 ---
 
@@ -125,9 +118,5 @@
 | UC-23 | Main-5 | Tải file | Action | Browser download |
 | UC-23 | EF-23.1 | Chưa ký | UI State | Error |
 | UC-23 | EF-23.2 | Lỗi tạo PDF | UI State | Error toast |
-| UC-24 | Main-1 | Nhấn "Yêu cầu VAT" | Action | CTA button |
-| UC-24 | Main-2~4 | Nhập thông tin | Input | Modal form |
-| UC-24 | Main-5~10 | Validate + tính thuế + tạo | Action | System processing |
-| UC-24 | EF-24.1 | Không có CASH | UI State | CTA hidden/disabled |
-| UC-24 | EF-24.2 | MST sai | UI State | Validation error |
-| UC-24 | EF-24.3 | Đã có hóa đơn | UI State | "Tải lại hóa đơn" |
+
+> **[REMOVED — BP03]** Toàn bộ UC-24 mapping (Main-1~10, EF-24.1~3) đã bị loại bỏ.
