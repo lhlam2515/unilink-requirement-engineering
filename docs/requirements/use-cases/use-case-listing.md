@@ -71,12 +71,19 @@ làm việc duy nhất.
 
 | UC ID | Tên Use Case | Primary Actor | Source FRs | File |
 |-------|-------------|---------------|------------|------|
-| UC-14 | Trao đổi tin nhắn trong thương vụ | Authenticated User | FR-0401, FR-0402 | [UC-14](specifications/UC-14_exchange_messages_in_deal.md) |
+| UC-14 | Trao đổi tin nhắn trong thương vụ | Authenticated User | FR-0401, FR-0402, FR-1301, FR-1303 | [UC-14](specifications/UC-14_exchange_messages_in_deal.md) |
 | UC-15 | Đặt lịch họp thương thảo | Authenticated User | FR-0403 | [UC-15](specifications/UC-15_schedule_meeting.md) |
 | UC-16 | Phản hồi đề xuất lịch họp | Authenticated User | FR-0404 | [UC-16](specifications/UC-16_respond_to_meeting_proposal.md) |
 | UC-17 | Ghi nhận kết quả cuộc họp | Authenticated User | FR-0405 | [UC-17](specifications/UC-17_record_meeting_outcomes.md) |
-| UC-18 | Xác nhận đồng thuận ký kết | Authenticated User | FR-0406 | [UC-18](specifications/UC-18_confirm_mutual_agreement.md) |
+| UC-18 | Xác nhận đồng thuận ký kết | Authenticated User | FR-0406, FR-1201, FR-1304 | [UC-18](specifications/UC-18_confirm_mutual_agreement.md) |
 | UC-19 | Hủy bỏ thương thảo | Authenticated User | FR-0407 | [UC-19](specifications/UC-19_terminate_negotiation.md) |
+| UC-56 | Tạo thỏa thuận nháp | Authenticated User | FR-0408 | [UC-56](specifications/UC-56_create_draft_agreement.md) |
+
+> **Ghi chú [UPDATED — BP03]:**
+>
+> - UC-14: Bổ sung Data Masking (FR-1301) và anti-bypass detection (FR-1303) vào luồng nhắn tin.
+> - UC-18: Chuyển đồng thuận sang AWAITING_PAYMENT thay vì AGREED. Yêu cầu Thỏa thuận nháp (UC-56) và miễn trừ trách nhiệm hiện vật (FR-1304).
+> - UC-56: Mới — Tạo thỏa thuận nháp (FR-0408), prerequisite cho UC-18.
 
 ---
 
@@ -88,8 +95,14 @@ làm việc duy nhất.
 | UC-21 | Xác nhận nội dung hợp đồng | Authenticated User | FR-0503 | [UC-21](specifications/UC-21_confirm_contract_content.md) |
 | UC-22 | Ký hợp đồng điện tử | Authenticated User | FR-0504 | [UC-22](specifications/UC-22_sign_contract_electronically.md) |
 | UC-23 | Xuất hợp đồng dạng PDF | Authenticated User | FR-0505 | [UC-23](specifications/UC-23_export_contract_as_pdf.md) |
-| UC-24 | Yêu cầu hóa đơn VAT | Sponsor | FR-0506 | [UC-24](specifications/UC-24_request_vat_invoice.md) |
-| UC-33 | Hủy đồng thuận ký kết hợp đồng | Authenticated User | FR-0507 | [UC-33](specifications/UC-33_cancel_contract_agreement.md) |
+| ~~UC-24~~ | ~~Yêu cầu hóa đơn VAT~~ | ~~Sponsor~~ | ~~FR-0506~~ | ~~REMOVED — BP03~~ |
+| ~~UC-33~~ | ~~Hủy đồng thuận ký kết hợp đồng~~ | ~~Authenticated User~~ | ~~FR-0507~~ | ~~REMOVED — hard-lock sau 2/2 thanh toán~~ |
+| UC-49 | Xử lý vi phạm ký kết hợp đồng | Authenticated User | FR-1406 | [UC-49](specifications/UC-49_handle_contract_signing_breach.md) |
+
+> **Ghi chú [UPDATED — BP03]:**
+>
+> - UC-24 (Yêu cầu hóa đơn VAT cho giá trị tài trợ) đã bị **LOẠI BỎ**. Nền tảng chỉ xuất hóa đơn VAT cho Phí quản lý chiến dịch (SF-12). FR-0506 và BR-0508 đã bị xóa.
+> - FR-0501: Trigger thay đổi — hợp đồng chỉ được tạo sau khi thanh toán phí dịch vụ hoàn tất (SF-12, 2/2 payment).
 
 ---
 
@@ -165,6 +178,39 @@ làm việc duy nhất.
 
 ---
 
+### SF-12: Service Fee Calculation & Paywall `[NEW — BP03]`
+
+| UC ID | Tên Use Case | Primary Actor | Source FRs | File |
+|-------|-------------|---------------|------------|------|
+| UC-50 | Thanh toán phí dịch vụ kết nối | Authenticated User | FR-1201→1207, FR-1401→1403 | [UC-50](specifications/UC-50_pay_service_fee.md) |
+| UC-51 | Xem trước chi phí dịch vụ | Authenticated User | FR-1202 | [UC-51](specifications/UC-51_preview_service_fee.md) |
+| UC-52 | Xuất hóa đơn VAT phí dịch vụ | System | FR-1208 | [UC-52](specifications/UC-52_issue_service_fee_vat_invoice.md) |
+
+> **Ghi chú:** Nhiều FR tự động (FR-1201, FR-1204→1207, FR-1401→1403) được tích hợp vào UC-50 dưới dạng system response/postconditions theo convention của dự án.
+
+---
+
+### SF-13: Contact Data Masking & Unlocking `[NEW — BP03]`
+
+| UC ID | Tên Use Case | Primary Actor | Source FRs | File |
+|-------|-------------|---------------|------------|------|
+| UC-53 | Xem xét vi phạm lách bộ lọc | Admin | FR-1303 | [UC-53](specifications/UC-53_review_bypass_violation.md) |
+
+> **Ghi chú:** FR-1301 (masking) và FR-1302 (unmask) là FULLY AUTOMATED — được nhúng vào UC-14 và UC-50. FR-1304 (in-kind disclaimer) được nhúng vào UC-18.
+
+---
+
+### SF-14: Payment Risk Management & Compliance `[NEW — BP03]`
+
+| UC ID | Tên Use Case | Primary Actor | Source FRs | File |
+|-------|-------------|---------------|------------|------|
+| UC-54 | Xem báo cáo doanh thu nền tảng | Admin | FR-1404 | [UC-54](specifications/UC-54_view_platform_revenue_report.md) |
+| UC-55 | Đối soát thanh toán thủ công | Admin | FR-1405 | [UC-55](specifications/UC-55_manual_payment_reconciliation.md) |
+
+> **Ghi chú:** FR-1401 (auto-refund), FR-1402 (non-refundable), FR-1403 (nhắc nhở) là FULLY AUTOMATED — được nhúng vào UC-50 postconditions. UC-49 (vi phạm ký kết) thuộc SF-05/SF-14 cross-cutting.
+
+---
+
 ## Thống kê
 
 | Nhóm Feature | Số lượng UC |
@@ -172,15 +218,18 @@ làm việc duy nhất.
 | SF-01: Sponsorship Proposal Management | 5 |
 | SF-02: Event & Partner Discovery | 6 |
 | SF-03: Sponsorship Invitation Management | 3 |
-| SF-04: Negotiation & Communication | 6 |
-| SF-05: Contract Management | 6 |
+| SF-04: Negotiation & Communication | 7 (+1 UC-56 mới) |
+| SF-05: Contract Management | 4 (-2 UC-24/UC-33 removed, +1 UC-49) |
 | SF-06: Obligation Fulfillment | 4 |
 | SF-07: Review & Reputation | 3 |
 | SF-08: Account Registration & Authentication | 4 |
 | SF-09: Organization Profile & Document Management | 3 |
 | SF-10: Organization Verification & Moderation | 5 |
 | SF-11: Public Organization Profile & Sponsorship History | 3 |
-| **Tổng cộng** | **48** |
+| SF-12: Service Fee Calculation & Paywall | 3 |
+| SF-13: Contact Data Masking & Unlocking | 1 |
+| SF-14: Payment Risk Management & Compliance | 2 |
+| **Tổng cộng** | **53** |
 
 ---
 

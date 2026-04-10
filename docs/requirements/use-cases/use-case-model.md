@@ -32,7 +32,8 @@ tại một extension point cụ thể, chỉ khi điều kiện mở rộng đ�
 | 9 | UC-26 (Nộp bằng chứng hoàn thành) | UC-25 (Theo dõi trạng thái nghĩa vụ) | Khi actor xem chi tiết một nghĩa vụ PENDING/IN_PROGRESS/DISPUTED | Actor là bên chịu trách nhiệm và muốn báo cáo hoàn thành |
 | 10 | UC-27 (Xác nhận hoàn thành) | UC-25 (Theo dõi trạng thái nghĩa vụ) | Khi actor xem chi tiết một nghĩa vụ SUBMITTED | Actor là bên đối tác và muốn xác nhận/từ chối |
 | 11 | UC-31 (Báo cáo đánh giá vi phạm) | UC-30 (Xem điểm uy tín) | Khi actor xem đánh giá trên trang uy tín | Actor phát hiện đánh giá vi phạm |
-| 12 | UC-33 (Hủy đồng thuận ký kết) | UC-20 (Chỉnh sửa điều khoản hợp đồng) | Trong giai đoạn soạn thảo/xác nhận hợp đồng | Actor muốn hủy bỏ thỏa thuận trước khi ký |
+| 12 | ~~UC-33 (Hủy đồng thuận ký kết)~~ | UC-20 (Chỉnh sửa điều khoản hợp đồng) | ~~Trong giai đoạn soạn thảo/xác nhận hợp đồng~~ | ~~Đã loại bỏ theo hard-lock sau 2/2 thanh toán~~ |
+| 12a | UC-49 (Xử lý vi phạm ký kết hợp đồng) | UC-22 (Ký hợp đồng điện tử) | Quá hạn ký 72 giờ mà chưa đủ 2 chữ ký | Actor muốn report đối tác trì hoãn ký |
 | 13 | UC-43 (Phê duyệt hồ sơ) | UC-42 (Xem chi tiết hồ sơ xác thực) | Sau khi Admin xem xong chi tiết hồ sơ | Admin quyết định phê duyệt hồ sơ |
 | 14 | UC-44 (Từ chối hồ sơ) | UC-42 (Xem chi tiết hồ sơ xác thực) | Sau khi Admin xem xong chi tiết hồ sơ | Admin quyết định từ chối hồ sơ |
 | 15 | UC-45 (Yêu cầu bổ sung) | UC-42 (Xem chi tiết hồ sơ xác thực) | Sau khi Admin xem xong chi tiết hồ sơ | Admin quyết định yêu cầu bổ sung thông tin |
@@ -106,7 +107,7 @@ Giai đoạn 5: Hợp đồng
                │
                ├── UC-23 (Xuất PDF)
                ├── UC-24 (Hóa đơn VAT)
-               └── UC-33 (Hủy đồng thuận — trước khi ký)
+               └── UC-49 (Xử lý vi phạm ký kết sau hard-lock)
 
 Giai đoạn 6: Thực hiện nghĩa vụ
   Obligations ──→ UC-25 → UC-26 → UC-27
@@ -178,7 +179,8 @@ Giai đoạn 8: Hồ sơ tổ chức công khai
 | UC-47 | UC-46 (mở tab lịch sử tài trợ) | — |
 | UC-48 | UC-46 (mở tab lịch sử giao dịch) | — |
 | UC-32 | Có hồ sơ PUBLISHED hoặc profile ACTIVE | UC-08, UC-09 |
-| UC-33 | UC-20 (contract DRAFTING hoặc CONFIRMED, chưa SIGNED) | UC-20 (reset về DRAFTING), Deal → IN_PROGRESS |
+| UC-33 | ~~UC-20 (contract DRAFTING hoặc CONFIRMED, chưa SIGNED)~~ | ~~UC-20 (reset về DRAFTING), Deal → IN_PROGRESS~~ |
+| UC-49 | UC-22 (contract quá hạn 72h, chưa SIGNED) | UC-49 (report → freeze → warning → close) |
 
 ---
 
@@ -256,7 +258,7 @@ graph TB
         UC22["UC-22: Ký hợp đồng điện tử"]
         UC23["UC-23: Xuất PDF"]
         UC24["UC-24: Yêu cầu hóa đơn VAT"]
-        UC33["UC-33: Hủy đồng thuận ký kết"]
+        UC49["UC-49: Xử lý vi phạm ký kết hợp đồng"]
     end
 
     subgraph SF06["SF-06: Obligation Fulfillment"]
@@ -433,16 +435,16 @@ graph TB
 
 ### Module 3: Negotiation & Contract
 
-**Use Cases**: UC-14 ~ UC-24, UC-33
+**Use Cases**: UC-14 ~ UC-24, UC-49
 
-**Mô tả**: Thương thảo (tin nhắn, cuộc họp, notebook), tạo hợp đồng, ký kết điện tử, xuất PDF, hóa đơn VAT, và hủy đồng thuận.
+**Mô tả**: Thương thảo (tin nhắn, cuộc họp, notebook), tạo hợp đồng, ký kết điện tử, xuất PDF, hóa đơn VAT, và xử lý vi phạm ký kết khi quá hạn hard-lock.
 
 **Bounded Context**: Deal, Meeting, Contract, Signature
 
 **Đặc điểm**:
 
 - State machine phức tạp nhất: Deal (IN_PROGRESS → AGREED → CANCELLED) + Contract (DRAFTING → CONFIRMED → SIGNED)
-- UC-33 cho phép hủy đồng thuận trước khi ký, reset contract về DRAFTING
+- UC-49 cho phép mở báo cáo, đóng băng tạm thời, gửi cảnh báo cuối cùng, và đóng thương vụ nếu quá hạn ký
 - Real-time communication (messaging, notifications)
 - Meeting chỉ ghi lịch hẹn và nhắc nhở — không host video call
 
@@ -500,7 +502,7 @@ công khai cho khách truy cập tra cứu. Đây là lớp read-only tách bi�
   là prerequisite cho tất cả giai đoạn sau (BP01). Public profile (UC-46~UC-48) là
   luồng đọc công khai, không phụ thuộc tuần tự vào BP01 nhưng phụ thuộc vào dữ liệu public
   đã được công bố.
-- **UC-33 (Hủy đồng thuận)** là extend mới, cho phép quay lui từ giai đoạn hợp đồng
+- **UC-49 (Xử lý vi phạm ký kết)** là extend mới, cho phép xử lý bùng ký sau hard-lock
   về IN_PROGRESS nếu chưa ký. Đây là safety valve cho quy trình ký kết.
 - **Guest actor** (mới từ BP02) là entry point cho hệ thống — sau khi đăng ký/đăng nhập
   thành công, Guest trở thành Authenticated User và có thể tham gia các UC từ Giai đoạn 1 trở đi.
