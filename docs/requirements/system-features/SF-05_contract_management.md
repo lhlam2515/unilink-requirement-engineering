@@ -4,24 +4,31 @@
 
 ```
 Scope:            Quản lý toàn bộ vòng đời hợp đồng tài trợ — từ soạn thảo, chỉnh sửa nội dung,
-                  xác nhận song phương, ký chữ ký điện tử, xuất tài liệu PDF, đến phát hành
-                  hóa đơn VAT cho giao dịch tiền mặt.
+                  xác nhận song phương, khóa cứng giai đoạn ký kết 72 giờ, ký chữ ký điện tử,
+                  xuất tài liệu PDF, đến xử lý vi phạm khi quá hạn ký.
+                  [UPDATED — BP03] Hóa đơn VAT cho giá trị tài trợ đã được LOẠI Bỏ khỏi
+                  phạm vi SF-05. Nền tảng chỉ xuất hóa đơn VAT cho Phí quản lý chiến dịch
+                  (SF-12 FR-1208). Việc xuất hóa đơn cho giá trị tài trợ là trách nhiệm
+                  của hai bên ngoài nền tảng.
 System Boundary:
-  IN:             Tạo bản nháp hợp đồng từ deal đã đồng thuận; Nhập/chỉnh sửa các điều khoản;
-                  Xác nhận nội dung; Hủy đồng thuận ký kết trước khi bắt đầu ký;
-                  Ký chữ ký điện tử; Xuất PDF; Phát hành hóa đơn VAT.
+  IN:             Tạo bản nháp hợp đồng từ deal đã đồng thuận và đã thanh toán phí; Nhập/chỉnh sửa các điều khoản;
+                  Xác nhận nội dung; Ký chữ ký điện tử; Xuất PDF; Khóa cứng giai đoạn ký kết 72 giờ sau 2/2 thanh toán.
   OUT:            Thương thảo (SF-04 — đã hoàn tất trước khi bắt đầu);
+                  Thanh toán phí dịch vụ (SF-12 — đã hoàn tất trước khi tạo hợp đồng);
+                  Hóa đơn VAT phí dịch vụ (SF-12 FR-1208 — không thuộc SF-05);
                   Thực hiện nghĩa vụ (SF-06 — bắt đầu sau khi ký kết).
 Assumptions:
   - [ASSUMED] Hệ thống sử dụng chữ ký điện tử đơn giản (drawn/typed signature) chứ không phải
     chữ ký số mã hóa (digital signature with PKI) ở phiên bản đầu.
   - [ASSUMED] Hợp đồng được tạo từ template có sẵn, điền thông tin từ deal context.
-  - [ASSUMED] Hóa đơn VAT (hóa đơn đỏ) được tạo bởi hệ thống dựa trên yêu cầu của doanh nghiệp.
+  - [REMOVED — BP03] Hóa đơn VAT cho GIÁ TRỊ TÀI TRỢ đã bị loại bỏ khỏi SF-05.
+    Nền tảng chỉ xuất hóa đơn VAT cho Phí quản lý chiến dịch (SF-12).
 Gaps Detected:
-  - Cần bổ sung cơ chế hủy đồng thuận ký kết trong giai đoạn soạn thảo/xác nhận hợp đồng
-    trước khi có chữ ký điện tử đầu tiên.
+  - Cần bổ sung trạng thái hard-lock và thời hạn ký 72 giờ sau khi 2/2 thanh toán hoàn tất.
   - Không nêu phiên bản (versioning) cho hợp đồng trong quá trình chỉnh sửa.
-  - Không nêu rõ hóa đơn VAT tuân theo quy định nào cụ thể → đánh dấu ASSUMED.
+  - Cần bổ sung cơ chế báo cáo vi phạm khi một bên cố tình trì hoãn hoặc từ chối ký quá hạn.
+  - [RESOLVED — BP03] Đã loại bỏ FR-0506 (hóa đơn VAT giá trị tài trợ) và BR-0508.
+    Di chuyển chức năng hóa đơn VAT sang SF-12 (chỉ cho phí dịch vụ).
 ```
 
 ---
@@ -31,8 +38,8 @@ Gaps Detected:
 | Business Actor | System Role | Permissions / Access Level |
 |---|---|---|
 | Tài khoản đại diện Ban tổ chức (BTC) | `organizer` | Soạn thảo, chỉnh sửa, xác nhận, ký chữ ký điện tử |
-| Tài khoản đại diện doanh nghiệp | `sponsor` | Soạn thảo, chỉnh sửa, xác nhận, ký chữ ký điện tử, yêu cầu hóa đơn VAT |
-| Hệ thống | `system` | Tạo bản nháp từ template, xác thực nội dung, tạo PDF, tạo hóa đơn, ghi log |
+| Tài khoản đại diện doanh nghiệp | `sponsor` | Soạn thảo, chỉnh sửa, xác nhận, ký chữ ký điện tử |
+| Hệ thống | `system` | Tạo bản nháp từ template, xác thực nội dung, tạo PDF, ghi log |
 
 ---
 
@@ -43,14 +50,19 @@ Gaps Detected:
 ```
 ID:            FR-0501
 Name:          Khởi tạo bản nháp hợp đồng tài trợ
-Description:   Hệ thống SHALL tự động tạo bản nháp hợp đồng khi deal chuyển sang trạng thái AGREED.
+Description:   Hệ thống SHALL tự động tạo bản nháp hợp đồng khi deal chuyển sang trạng thái AGREED
+               (sau khi thanh toán phí dịch vụ hoàn tất — SF-12 FR-1207).
                Bản nháp SHALL được điền sẵn thông tin từ deal context: thông tin BTC, thông tin
-               doanh nghiệp, thông tin sự kiện, gói tài trợ đã thảo luận. Hệ thống SHALL sử dụng
-               template hợp đồng chuẩn của nền tảng.
+               doanh nghiệp, thông tin sự kiện, gói tài trợ đã thảo luận, và thông tin từ
+               thỏa thuận nháp (SF-04 FR-0408). Hệ thống SHALL sử dụng
+               template hợp đồng chuẩn của nền tảng và khởi tạo thời hạn ký 72 giờ.
+               [UPDATED — BP03] Trigger thay đổi: deal.status = AGREED (sau khi thanh toán
+               2/2 hoàn tất và thông tin liên hệ đã mở khóa).
 Classification: FULLY AUTOMATED (khởi tạo) → SYSTEM-SUPPORTED (chỉnh sửa)
 Actor:         System (khởi tạo), Organizer & Sponsor (chỉnh sửa)
-Trigger:       Deal chuyển sang trạng thái AGREED (từ SF-04, FR-0406)
-Inputs:        deal_id, proposal_id, organizer_info, sponsor_info, agreed_terms (từ deal notes)
+Trigger:       Deal chuyển sang trạng thái AGREED (từ SF-12, FR-1207 — sau khi 2/2 thanh toán)
+Inputs:        deal_id, proposal_id, organizer_info, sponsor_info, agreed_terms (từ deal notes),
+               draft_agreement (từ SF-04 FR-0408)
 Outputs:       contract_id (UUID), status = DRAFTING, pre-populated contract fields
 Business Rules: BR-0501
 Acceptance Criteria:
@@ -58,6 +70,7 @@ Acceptance Criteria:
   When    hệ thống xử lý sự kiện
   Then    hệ thống SHALL tạo contract mới với trạng thái DRAFTING
   And     hệ thống SHALL điền sẵn thông tin BTC, doanh nghiệp, và sự kiện từ deal
+  And     hệ thống SHALL khởi tạo signing_deadline_at = agreed_at + 72 giờ
   And     hệ thống SHALL thông báo cho cả hai bên "Hợp đồng đã sẵn sàng để soạn thảo"
 Priority:      MUST
 ```
@@ -192,67 +205,36 @@ Acceptance Criteria:
 Priority:      MUST
 ```
 
-### FR-0506: Phát hành hóa đơn VAT
-
-```
-ID:            FR-0506
-Name:          Tạo và phát hành hóa đơn VAT cho giao dịch tiền mặt
-Description:   Hệ thống SHALL cho phép sponsor yêu cầu hóa đơn VAT (hóa đơn đỏ) cho các
-               giao dịch tài trợ tiền mặt. Hệ thống SHALL tạo hóa đơn với thông tin:
-               tên và mã số thuế doanh nghiệp, nội dung dịch vụ, giá trị trước thuế,
-               thuế suất VAT, tổng giá trị. Hóa đơn có thể được xuất dạng PDF.
-Classification: SYSTEM-SUPPORTED
-Actor:         Sponsor (yêu cầu), System (tạo hóa đơn)
-Trigger:       Sponsor nhấn "Yêu cầu hóa đơn VAT" trên trang hợp đồng đã ký
-Inputs:        contract_id, business_name (string), tax_code (string),
-               business_address (string), service_description (text)
-Outputs:       invoice_id (UUID), invoice_number (string — sequential),
-               invoice_pdf (binary), issued_at (timestamp)
-Business Rules: BR-0508
-Acceptance Criteria:
-  Given   contract ở trạng thái SIGNED và hình thức tài trợ bao gồm CASH
-  When    sponsor nhấn "Yêu cầu hóa đơn VAT" và nhập mã số thuế = "0312345678"
-  Then    hệ thống SHALL tạo hóa đơn VAT với số hóa đơn tự động
-  And     hệ thống SHALL cho phép xuất hóa đơn dạng PDF
-
-  Given   hình thức tài trợ chỉ có IN_KIND (không có tiền mặt)
-  When    sponsor yêu cầu hóa đơn VAT
-  Then    hệ thống SHALL từ chối "Hóa đơn VAT chỉ áp dụng cho giao dịch tiền mặt"
-Priority:      SHOULD
-```
-
-### FR-0507: Hủy bỏ đồng thuận ký kết hợp đồng
+### FR-0507: Khóa cứng giai đoạn ký kết hợp đồng
 
 ```
 ID:            FR-0507
-Name:          Hủy đồng thuận ký kết
-Description:   Hệ thống SHALL cho phép organizer hoặc sponsor hủy đồng thuận ký kết hợp đồng
-               khi hợp đồng đang ở trạng thái DRAFTING hoặc CONFIRMED và chưa có chữ ký
-               điện tử từ bất kỳ bên nào. Khi hủy đồng thuận, hệ thống SHALL chuyển contract
-               về trạng thái DRAFTING, reset các cờ xác nhận nội dung, và cập nhật deal liên kết
-               về IN_PROGRESS để hai bên quay lại thương thảo ở SF-04. Bên hủy PHẢI nhập lý do.
-Classification: SYSTEM-SUPPORTED
-Actor:         Organizer, Sponsor
-Trigger:       Actor nhấn "Hủy đồng thuận ký kết" trong trang hợp đồng
-Inputs:        contract_id, cancelled_by (UUID), cancellation_reason (text, required)
-Outputs:       contract.status = DRAFTING,
-               contract.organizer_content_confirmed = false,
-               contract.sponsor_content_confirmed = false,
-               deal.status = IN_PROGRESS,
-               cancellation_log_entry
-Business Rules: BR-0509
+Name:          Khóa cứng tính năng hủy hợp đồng và đếm ngược thời hạn ký
+Description:   Hệ thống SHALL tự động vô hiệu hóa mọi hành động hủy hợp đồng/hủy đồng thuận
+               ngay khi PaywallSession đạt COMPLETED (2/2). Từ thời điểm này, contract được
+               đặt vào trạng thái hard-lock, hiển thị đếm ngược 72 giờ để cả hai bên hoàn tất
+               ký chữ ký điện tử. Nếu hết thời hạn mà chưa đủ 2 chữ ký, hệ thống SHALL phát
+               sinh sự kiện vi phạm để SF-14 xử lý.
+Classification: FULLY AUTOMATED
+Actor:         System
+Trigger:       PaywallSession chuyển sang COMPLETED (2/2)
+Inputs:        deal_id, paywall_session_id, agreed_at
+Outputs:       contract.hard_locked_at, contract.signing_deadline_at,
+               contract.cancel_action_enabled = false,
+               contract.signing_status = IN_PROGRESS
+Business Rules: BR-0509, BR-0510
 Acceptance Criteria:
-  Given   contract ở trạng thái CONFIRMED
-  And     organizer_signed = false và sponsor_signed = false
-  When    sponsor nhấn "Hủy đồng thuận ký kết" với lý do = "Cần đàm phán lại quyền lợi truyền thông"
-  Then    hệ thống SHALL chuyển contract về DRAFTING
-  And     hệ thống SHALL reset organizer_content_confirmed = false và sponsor_content_confirmed = false
-  And     hệ thống SHALL chuyển deal liên kết về IN_PROGRESS
-  And     hệ thống SHALL thông báo cho organizer kèm lý do
+  Given   PaywallSession vừa chuyển sang COMPLETED (2/2)
+  When    hệ thống xử lý sự kiện
+  Then    hệ thống SHALL vô hiệu hóa hoàn toàn hành động hủy hợp đồng/hủy đồng thuận
+  And     hệ thống SHALL ghi nhận hard_locked_at
+  And     hệ thống SHALL thiết lập signing_deadline_at = hard_locked_at + 72 giờ
+  And     hệ thống SHALL hiển thị countdown 72 giờ trên màn hình hợp đồng
 
-  Given   contract đã có organizer_signed = true hoặc sponsor_signed = true
-  When    actor cố hủy đồng thuận ký kết
-  Then    hệ thống SHALL từ chối "Không thể hủy đồng thuận sau khi đã bắt đầu ký hợp đồng"
+  Given   contract đã ở trạng thái hard-lock
+  When    actor cố tìm hoặc truy cập hành động hủy hợp đồng
+  Then    hệ thống SHALL không hiển thị nút hủy
+  And     hệ thống SHALL từ chối mọi thao tác hủy qua API/UI với thông báo "Hợp đồng đã vào giai đoạn ký kết, không thể hủy"
 Priority:      MUST
 ```
 
@@ -309,13 +291,18 @@ Source:      Quy trình gốc — Bước 4 (DN cần hóa đơn đỏ cho giao 
 Type:        Validation
 
 ID:          BR-0509
-Rule:        Chỉ cho phép hủy đồng thuận ký kết khi contract ở trạng thái DRAFTING hoặc
-             CONFIRMED và chưa có chữ ký điện tử nào.
-             Khi hủy, hệ thống PHẢI reset cờ xác nhận nội dung hợp đồng và đưa deal liên kết
-             về IN_PROGRESS để quay lại thương thảo.
-             Lý do hủy là BẮT BUỘC (min 10 ký tự) và PHẢI được ghi audit log.
-Source:      [INFERRED — hỗ trợ quay lại thương thảo trước khi phát sinh chữ ký pháp lý]
-Type:        Validation + Routing
+Rule:        Ngay khi PaywallSession chuyển sang COMPLETED (2/2), hệ thống PHẢI kích hoạt
+             hard-lock cho hợp đồng liên kết và vô hiệu hóa mọi hành động hủy hợp đồng/
+             hủy đồng thuận. Mọi nút/hành động hủy phải bị ẩn hoặc trả lỗi nếu được gọi
+             qua API.
+Source:      [INFERRED — hard-lock sau khi cả hai bên hoàn tất nghĩa vụ thanh toán]
+Type:        Validation + Authorization
+
+ID:          BR-0510
+Rule:        Hợp đồng PHẢI hoàn tất 2 chữ ký trong vòng 72 giờ kể từ khi hard-lock được kích hoạt.
+             Nếu hết hạn mà chưa đủ 2 chữ ký, hệ thống PHẢI phát sinh sự kiện vi phạm để SF-14 xử lý.
+Source:      [INFERRED — ép tiến độ ký kết sau thanh toán]
+Type:        Time-based + Routing
 
 ```
 
@@ -331,6 +318,7 @@ Attributes:
   - contract_number: String (auto-generated, human-readable)
   - status: Enum [DRAFTING, CONFIRMED, SIGNED] (default: DRAFTING)
   - version_number: Integer (default: 1, increment on edit)
+  - signing_window_started_at: DateTime (nullable — khi deal chuyển sang AGREED)
   - organizer_info: JSON { name, representative, address, phone, email }
   - sponsor_info: JSON { name, representative, tax_code, address, phone, email }
   - signing_date: Date (nullable — populated on sign)
@@ -353,12 +341,14 @@ Attributes:
   - sponsor_signature_data: Binary (nullable)
   - organizer_signed_at: DateTime (nullable)
   - sponsor_signed_at: DateTime (nullable)
+  - hard_locked_at: DateTime (nullable — khi 2/2 payment hoàn tất)
+  - signing_deadline_at: DateTime (nullable — hard_locked_at + 72h)
+  - cancel_action_enabled: Boolean (default: true)
   - created_at: DateTime
   - updated_at: DateTime
 Relationships:
   - Contract —(1:1)→ Deal
   - Contract —(1:N)→ ContractEditLog
-  - Contract —(0..1:1)→ VATInvoice
   - Contract —(1:N)→ Obligation (SF-06)
 
 Entity:        ContractEditLog
@@ -374,23 +364,9 @@ Attributes:
 Relationships:
   - ContractEditLog —(N:1)→ Contract
 
-Entity:        VATInvoice
-Attributes:
-  - invoice_id: UUID (PK)
-  - contract_id: UUID (FK → Contract, UNIQUE)
-  - invoice_number: String (auto-generated, sequential)
-  - business_name: String (required)
-  - tax_code: String (required, 10 or 13 digits)
-  - business_address: String (required)
-  - service_description: Text (required)
-  - amount_before_tax: Decimal
-  - vat_rate: Decimal (default: 0.10 — 10%)
-  - vat_amount: Decimal (calculated)
-  - total_amount: Decimal (calculated)
-  - issued_at: DateTime
-  - issued_by: UUID (FK → System)
-Relationships:
-  - VATInvoice —(1:1)→ Contract
+[REMOVED — BP03] Entity VATInvoice đã bị loại bỏ khỏi SF-05.
+Hóa đơn VAT cho phí dịch vụ nền tảng được quản lý bởi SF-12 (PlatformVATInvoice).
+Nền tảng TUYỆT ĐỐI KHÔNG xuất hóa đơn cho giá trị gói tài trợ.
 ```
 
 ---
@@ -399,10 +375,15 @@ Relationships:
 
 | Process Step | Classification | System Function (FR-ID) | Business Rules (BR-IDs) | Entity |
 |---|---|---|---|---|
-| 4. Soạn thảo hợp đồng (khởi tạo) | FULLY AUTOMATED | FR-0501 | BR-0501 | Contract |
+| 4. Soạn thảo hợp đồng (khởi tạo, sau thanh toán 2/2) | FULLY AUTOMATED | FR-0501 | BR-0501 | Contract |
 | 4. Điền thông tin hợp đồng | SYSTEM-SUPPORTED | FR-0502 | BR-0502, BR-0503 | Contract, ContractEditLog |
 | 4. Xác nhận nội dung hợp đồng | SYSTEM-SUPPORTED | FR-0503 | BR-0504 | Contract |
 | 4. Ký chữ ký điện tử | SYSTEM-SUPPORTED | FR-0504 | BR-0505, BR-0506 | Contract |
 | 4. Xuất tài liệu hợp đồng điện tử | SYSTEM-SUPPORTED | FR-0505 | BR-0507 | Contract |
-| 4. Hóa đơn đỏ cho giao dịch tiền mặt | SYSTEM-SUPPORTED | FR-0506 | BR-0508 | VATInvoice |
-| [INFERRED] Hủy đồng thuận ký kết hợp đồng | SYSTEM-SUPPORTED | FR-0507 | BR-0509 | Contract, Deal |
+| ~~4. Hóa đơn đỏ cho giao dịch tiền mặt~~ | ~~REMOVED~~ | ~~FR-0506~~ | ~~BR-0508~~ | ~~VATInvoice~~ |
+| [INFERRED] Khóa cứng giai đoạn ký kết | FULLY AUTOMATED | FR-0507 | BR-0509, BR-0510 | Contract, Deal |
+
+> **Ghi chú [UPDATED — BP03]:**
+> - FR-0501: Trigger thay đổi từ `deal.status = AGREED (SF-04)` sang `deal.status = AGREED (SF-12 FR-1207, sau thanh toán 2/2)`.
+> - FR-0506 + BR-0508 + VATInvoice: Đã LOẠI BỎ. Nền tảng chỉ xuất hóa đơn VAT cho Phí dịch vụ (SF-12 FR-1208).
+> - FR-0507: Đã chuyển từ "hủy đồng thuận" sang "khóa cứng giai đoạn ký kết 72 giờ" theo policy mới.

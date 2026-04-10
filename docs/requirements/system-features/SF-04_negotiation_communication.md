@@ -4,16 +4,22 @@
 
 ```
 Scope:            Cung cấp các công cụ trao đổi và thương thảo giữa BTC và doanh nghiệp sau khi
-                  lời mời tài trợ được chấp nhận. Bao gồm nhắn tin theo ngữ cảnh thương vụ,
-                  đặt lịch họp, ghi nhận kết quả họp theo dạng notebook minh bạch, chia sẻ file
-                  đính kèm, và theo dõi tiến trình thương thảo cho đến khi hai bên đồng thuận.
+                  lời mời tài trợ được chấp nhận. Bao gồm nhắn tin theo ngữ cảnh thương vụ
+                  (được áp dụng Data Masking trước khi thanh toán — SF-13), đặt lịch họp, ghi
+                  nhận kết quả họp theo dạng notebook minh bạch, chia sẻ file đính kèm, tạo
+                  thỏa thuận nháp, và theo dõi tiến trình thương thảo cho đến khi hai bên đồng
+                  thuận và chuyển sang thanh toán phí dịch vụ.
 System Boundary:
-  IN:             Nhắn tin trao đổi trong deal context; Chia sẻ file đính kèm; Đặt lịch họp;
+  IN:             Nhắn tin trao đổi trong deal context (có Data Masking — SF-13);
+                  Chia sẻ file đính kèm; Đặt lịch họp;
                   Ghi nhận kết quả họp dưới dạng notebook; Theo dõi trạng thái thương thảo;
-                  Xác nhận đồng thuận hai chiều để tiến đến ký kết;
+                  Tạo thỏa thuận nháp (Draft Agreement);
+                  Xác nhận đồng thuận hai chiều để chuyển sang thanh toán phí (SF-12);
                   Hủy bỏ thương thảo khi chưa đồng thuận cuối cùng.
   OUT:            Gửi lời mời tài trợ (SF-03 — deal đã được tạo);
-                  Soạn thảo và ký kết hợp đồng (SF-05 — bắt đầu sau đồng thuận);
+                  Data Masking / Anti-bypass (SF-13 — áp dụng lên tin nhắn);
+                  Thanh toán phí dịch vụ (SF-12 — bắt đầu sau đồng thuận, AWAITING_PAYMENT);
+                  Soạn thảo và ký kết hợp đồng (SF-05 — bắt đầu sau khi thanh toán hoàn tất);
                   Giao diện video call / họp trực tuyến trong nền tảng.
 Assumptions:
   - [ASSUMED] Deal/Negotiation context được tạo tự động khi lời mời được chấp nhận (SF-03, FR-0303).
@@ -21,11 +27,16 @@ Assumptions:
   - [ASSUMED] File đính kèm hỗ trợ các định dạng phổ biến (PDF, DOCX, XLSX, JPEG, PNG) với giới hạn 10MB/file.
   - [ASSUMED] Hệ thống đặt lịch họp ghi nhận thông tin cuộc họp nhưng không tích hợp lịch bên ngoài (Google Calendar, v.v.) ở phiên bản đầu.
   - [ASSUMED] Hệ thống không cung cấp giao diện video call; meeting online chỉ được ghi nhận như một lịch hẹn có link/địa điểm tham chiếu bên ngoài.
+  - [UPDATED — BP03] Tin nhắn trong deal context được áp dụng Data Masking (SF-13) cho đến khi
+    thanh toán phí dịch vụ hoàn tất (SF-12, 2/2 payment).
+  - [UPDATED — BP03] Đồng thuận (FR-0406) chuyển deal sang AWAITING_PAYMENT thay vì AGREED.
+    Deal chỉ chuyển sang AGREED sau khi thanh toán hoàn tất (SF-12 FR-1207).
 Gaps Detected:
   - Quy trình gốc không nêu rõ cơ chế xác nhận đồng thuận → cần bổ sung mutual confirmation flow.
   - Không nêu giới hạn thời gian cho giai đoạn thương thảo → cần bổ sung SLA hoặc nhắc nhở.
   - Không nêu rõ ai có thể tham gia thương thảo trong nhóm BTC (toàn bộ hay chỉ đại diện).
   - Cần khẳng định hệ thống không hỗ trợ giao diện thực hiện video call hay sinh nội dung cuộc họp từ video.
+  - [RESOLVED — BP03] Bổ sung cơ chế tạo thỏa thuận nháp (FR-0408) và trạng thái AWAITING_PAYMENT.
 ```
 
 ---
@@ -51,11 +62,16 @@ Description:   Hệ thống SHALL cho phép hai bên (organizer và sponsor) g�
                văn bản trong phạm vi một deal cụ thể. Tin nhắn SHALL được hiển thị theo thứ tự
                thời gian và đánh dấu trạng thái đã đọc/chưa đọc. Hệ thống SHALL hỗ trợ
                giao tiếp real-time.
+               [UPDATED — BP03] Tất cả tin nhắn văn bản SHALL được áp dụng bộ lọc Data Masking
+               (SF-13, FR-1301) khi deal chưa hoàn tất thanh toán phí dịch vụ
+               (deal.contact_unlocked = false). Thông tin liên hệ (SĐT, email, link MXH)
+               sẽ bị che giấu cho đến khi cả hai bên thanh toán phí (SF-12, 2/2 hoàn tất).
 Classification: SYSTEM-SUPPORTED
 Actor:         Organizer, Sponsor
 Trigger:       Actor nhập và gửi tin nhắn trong trang thương thảo của deal
 Inputs:        deal_id (UUID), sender_id (UUID), content (text, required)
-Outputs:       message_id (UUID), sent_at (timestamp), delivery_status (SENT | DELIVERED | READ)
+Outputs:       message_id (UUID), sent_at (timestamp), delivery_status (SENT | DELIVERED | READ),
+               display_content (text — đã masking nếu contact_unlocked = false)
 Business Rules: BR-0401, BR-0402
 Acceptance Criteria:
   Given   deal "deal-001" đang ở trạng thái IN_PROGRESS
@@ -63,6 +79,10 @@ Acceptance Criteria:
   When    organizer gửi tin nhắn "Chúng tôi muốn thảo luận về gói Nhà tài trợ chính"
   Then    hệ thống SHALL lưu tin nhắn và hiển thị cho sponsor trong real-time
   And     hệ thống SHALL gửi thông báo in-app cho sponsor nếu không đang online
+
+  Given   deal chưa mở khóa (contact_unlocked = false)
+  When    organizer gửi "Liên hệ tôi qua 0912345678"
+  Then    hệ thống SHALL hiển thị "Liên hệ tôi qua **********" (Data Masking — SF-13)
 
   Given   deal ở trạng thái TERMINATED
   When    actor cố gửi tin nhắn
@@ -191,31 +211,83 @@ Priority:      SHOULD
 
 ```
 ID:            FR-0406
-Name:          Xác nhận đồng thuận sẵn sàng ký kết hợp đồng
-Description:   Hệ thống SHALL yêu cầu CẢ HAI bên (organizer VÀ sponsor) xác nhận đồng thuận
-               trước khi cho phép chuyển sang giai đoạn soạn thảo hợp đồng (SF-05).
-               Mỗi bên nhấn "Xác nhận sẵn sàng". Khi CẢ HAI bên đã xác nhận,
-               hệ thống SHALL chuyển deal sang trạng thái AGREED và mở khóa tính năng
-               soạn thảo hợp đồng.
+Name:          Xác nhận đồng thuận và chuyển sang thanh toán phí dịch vụ
+Description:   Hệ thống SHALL yêu cầu CẢ HAI bên (organizer VÀ sponsor) xác nhận đồng thuận.
+               Mỗi bên nhấn "Xác nhận sẵn sàng". Khi CẢ HAI bên đã xác nhận:
+               - Nếu deal có hiện vật (IN_KIND/COMBINED): hệ thống SHALL yêu cầu xác nhận
+                 miễn trừ trách nhiệm hiện vật (SF-13, FR-1304) trước khi tiếp tục.
+               - Sau khi đủ điều kiện, hệ thống SHALL chuyển deal sang trạng thái
+                 AWAITING_PAYMENT và kích hoạt Paywall (SF-12, FR-1201).
+               [UPDATED — BP03] Deal KHÔNG trực tiếp chuyển sang AGREED nữa.
+               Luồng mới: IN_PROGRESS → AWAITING_PAYMENT → AGREED (sau khi 2/2 thanh toán).
 Classification: SYSTEM-SUPPORTED
 Actor:         Organizer (xác nhận), Sponsor (xác nhận), System (kiểm tra song phương)
 Trigger:       Actor nhấn "Xác nhận đồng thuận" trong trang thương thảo
 Inputs:        deal_id, confirmed_by (UUID)
 Outputs:       deal.organizer_confirmed (boolean), deal.sponsor_confirmed (boolean),
-               deal.status = AGREED (khi cả hai đã xác nhận)
+               deal.status = AWAITING_PAYMENT (khi cả hai đã xác nhận + disclaimer nếu cần)
 Business Rules: BR-0405
 Acceptance Criteria:
   Given   deal đang ở trạng thái IN_PROGRESS
   When    organizer nhấn "Xác nhận đồng thuận"
   Then    hệ thống SHALL ghi nhận organizer_confirmed = true
-  And     hệ thống SHALL thông báo cho sponsor "BTC đã xác nhận sẵn sàng ký kết"
+  And     hệ thống SHALL thông báo cho sponsor "BTC đã xác nhận sẵn sàng"
   But     deal vẫn ở trạng thái IN_PROGRESS (chờ sponsor xác nhận)
 
   Given   organizer_confirmed = true VÀ sponsor nhấn "Xác nhận đồng thuận"
+  And     deal.sponsorship_type = CASH (không cần disclaimer)
   When    hệ thống kiểm tra
-  Then    hệ thống SHALL chuyển deal sang trạng thái AGREED
-  And     hệ thống SHALL mở khóa tính năng "Soạn thảo hợp đồng"
-  And     hệ thống SHALL thông báo cho cả hai bên "Thương thảo hoàn tất, sẵn sàng ký kết"
+  Then    hệ thống SHALL chuyển deal sang trạng thái AWAITING_PAYMENT
+  And     hệ thống SHALL kích hoạt Paywall (SF-12, FR-1201)
+  And     hệ thống SHALL thông báo "Đồng thuận hoàn tất. Vui lòng thanh toán phí dịch vụ."
+
+  Given   organizer_confirmed = true VÀ sponsor nhấn "Xác nhận đồng thuận"
+  And     deal.sponsorship_type = IN_KIND hoặc COMBINED
+  When    hệ thống kiểm tra
+  Then    hệ thống SHALL hiển thị checkbox miễn trừ trách nhiệm (SF-13, FR-1304)
+  And     deal SHALL KHÔNG chuyển sang AWAITING_PAYMENT cho đến khi cả hai tích chọn
+Priority:      MUST
+```
+
+### FR-0408: Tạo thỏa thuận nháp (Draft Agreement)
+
+```
+ID:            FR-0408
+Name:          Tạo và xác nhận thỏa thuận nháp trước khi lock-in
+Description:   Hệ thống SHALL cho phép một bên tạo "Thỏa thuận nháp" (Draft Agreement)
+               tóm tắt các điều khoản đã thống nhất trong quá trình thương thảo. Thỏa thuận
+               nháp bao gồm: hình thức tài trợ, giá trị tài trợ (nếu tiền mặt), mô tả
+               hiện vật (nếu có), và các điều khoản chính đã đồng ý. Bên còn lại xem và
+               nhấn "Xác nhận thỏa thuận". Khi cả hai bên xác nhận, thỏa thuận nháp
+               trở thành cơ sở để tính phí dịch vụ (SF-12) và soạn hợp đồng (SF-05).
+               [ADDED — BP03 Bước 1: "một bên tạo Thỏa thuận nháp, bên còn lại bấm Xác nhận"]
+Classification: SYSTEM-SUPPORTED
+Actor:         Organizer hoặc Sponsor (tạo), đối tác (xác nhận)
+Trigger:       Actor nhấn "Tạo thỏa thuận nháp" trong trang thương thảo
+Inputs:        deal_id, created_by (UUID),
+               sponsorship_type (CASH | IN_KIND | COMBINED),
+               sponsorship_value (decimal, required if CASH/COMBINED),
+               in_kind_description (text, required if IN_KIND/COMBINED),
+               key_terms (text — tóm tắt điều khoản chính)
+Outputs:       draft_agreement_id (UUID), status = PENDING_CONFIRMATION,
+               notification cho đối tác
+Business Rules: BR-0407
+Acceptance Criteria:
+  Given   deal đang ở trạng thái IN_PROGRESS
+  When    organizer tạo thỏa thuận nháp với sponsorship_type = CASH,
+          value = 20.000.000 VNĐ, key_terms = "Gói Nhà tài trợ chính"
+  Then    hệ thống SHALL tạo draft agreement với trạng thái PENDING_CONFIRMATION
+  And     hệ thống SHALL thông báo cho sponsor "BTC đã tạo thỏa thuận nháp. Vui lòng xem xét."
+
+  Given   sponsor xem thỏa thuận nháp
+  When    sponsor nhấn "Xác nhận thỏa thuận"
+  Then    hệ thống SHALL chuyển draft agreement sang CONFIRMED
+  And     hệ thống SHALL mở khóa nút "Xác nhận đồng thuận" (FR-0406)
+
+  Given   sponsor không đồng ý nội dung
+  When    sponsor nhấn "Từ chối" với ghi chú = "Cần điều chỉnh giá trị tài trợ"
+  Then    hệ thống SHALL chuyển draft agreement sang REJECTED
+  And     bên tạo có thể tạo lại thỏa thuận nháp mới
 Priority:      MUST
 ```
 
@@ -257,8 +329,9 @@ Source:      Quy trình gốc — Bước 3 (hai bên sẽ trao đổi với nha
 Type:        Authorization
 
 ID:          BR-0402
-Rule:        Tin nhắn chỉ có thể gửi khi deal ở trạng thái IN_PROGRESS hoặc AGREED.
-             Deal ở trạng thái TERMINATED không cho phép gửi tin nhắn mới.
+Rule:        Tin nhắn chỉ có thể gửi khi deal ở trạng thái IN_PROGRESS, AWAITING_PAYMENT,
+             hoặc AGREED. Deal ở trạng thái TERMINATED không cho phép gửi tin nhắn mới.
+             [UPDATED — BP03] Thêm AWAITING_PAYMENT vào danh sách trạng thái cho phép nhắn tin.
 Source:      [INFERRED — bảo vệ tính nhất quán trạng thái]
 Type:        Routing
 
@@ -275,16 +348,29 @@ Source:      Quy trình gốc — Bước 3 (Đặt lịch họp/meeting)
 Type:        Validation + Time-based
 
 ID:          BR-0405
-Rule:        Deal chỉ chuyển từ IN_PROGRESS sang AGREED khi CẢ HAI bên đều xác nhận đồng thuận.
-             Xác nhận đồng thuận có thể rút lại trước khi bên còn lại xác nhận.
-Source:      Quy trình gốc — Bước 3 (sau khi hai bên đều đồng thuận... mới có thể tiến đến việc ký kết)
+Rule:        [UPDATED — BP03] Deal chuyển từ IN_PROGRESS sang AWAITING_PAYMENT khi CẢ HAI bên
+             đều xác nhận đồng thuận (và miễn trừ hiện vật nếu cần — SF-13 FR-1304).
+             Deal chuyển từ AWAITING_PAYMENT sang AGREED chỉ khi thanh toán hoàn tất
+             (SF-12, 2/2 payment — FR-1207). Xác nhận đồng thuận có thể rút lại trước khi
+             bên còn lại xác nhận.
+Source:      Quy trình gốc — Bước 3 + BP03 Bước 1 (lock-in → chờ thanh toán)
 Type:        Routing
 
 ID:          BR-0406
 Rule:        Lý do hủy bỏ thương thảo là BẮT BUỘC (min 10 ký tự).
              Deal chỉ có thể hủy khi ở trạng thái IN_PROGRESS. [ASSUMED]
-             Deal đã AGREED không thể hủy qua giao diện thương thảo.
-Source:      [INFERRED — audit trail và bảo vệ deal đã đồng thuận]
+             Deal đã AWAITING_PAYMENT hoặc AGREED không thể hủy qua giao diện thương thảo.
+             [UPDATED — BP03] Thêm AWAITING_PAYMENT vào danh sách trạng thái không thể hủy.
+Source:      [INFERRED — audit trail và bảo vệ deal đã lock-in]
+Type:        Validation + Routing
+
+ID:          BR-0407
+Rule:        Thỏa thuận nháp (Draft Agreement) là BẮT BUỘC trước khi hai bên có thể xác nhận
+             đồng thuận (FR-0406). Mỗi deal chỉ có MỘT thỏa thuận nháp CONFIRMED tại một thời điểm.
+             Nếu thỏa thuận nháp bị REJECTED, bên tạo có thể tạo lại. Thỏa thuận nháp xác định
+             sponsorship_type và sponsorship_value — cơ sở để tính phí dịch vụ (SF-12).
+             [ADDED — BP03 Bước 1]
+Source:      BP03 — Bước 1 ("một bên tạo Thỏa thuận nháp, bên còn lại bấm Xác nhận")
 Type:        Validation + Routing
 ```
 
@@ -300,13 +386,20 @@ Attributes:
   - proposal_id: UUID (FK → SponsorshipProposal)
   - organizer_id: UUID (FK → User)
   - sponsor_id: UUID (FK → User)
-  - status: Enum [IN_PROGRESS, AGREED, TERMINATED] (default: IN_PROGRESS)
+  - status: Enum [IN_PROGRESS, AWAITING_PAYMENT, AGREED, TERMINATED] (default: IN_PROGRESS)
+           [UPDATED — BP03] Thêm AWAITING_PAYMENT giữa IN_PROGRESS và AGREED.
+  - contact_unlocked: Boolean (default: false)
+           [ADDED — BP03] Đánh dấu thông tin liên hệ đã được mở khóa sau thanh toán.
+  - unlocked_at: DateTime (nullable)
+           [ADDED — BP03] Thời điểm mở khóa thông tin liên hệ.
   - organizer_confirmed: Boolean (default: false)
   - sponsor_confirmed: Boolean (default: false)
   - termination_reason: Text (nullable)
   - terminated_by: UUID (FK → User, nullable)
   - created_at: DateTime
   - updated_at: DateTime
+  - awaiting_payment_at: DateTime (nullable)
+           [ADDED — BP03] Thời điểm chuyển sang AWAITING_PAYMENT.
   - agreed_at: DateTime (nullable)
   - terminated_at: DateTime (nullable)
 Relationships:
@@ -314,7 +407,29 @@ Relationships:
   - Deal —(N:1)→ SponsorshipProposal
   - Deal —(1:N)→ DealMessage
   - Deal —(1:N)→ Meeting
-  - Deal —(1:1)→ Contract (khi tiến sang SF-05)
+  - Deal —(0..1:1)→ DraftAgreement [ADDED — BP03]
+  - Deal —(0..1:1)→ PaywallSession (SF-12) [ADDED — BP03]
+  - Deal —(1:1)→ Contract (khi tiến sang SF-05, sau khi thanh toán hoàn tất)
+
+Entity:        DraftAgreement
+Description:   Thỏa thuận nháp — tóm tắt điều khoản đã thống nhất.
+               [ADDED — BP03 Bước 1]
+Attributes:
+  - agreement_id: UUID (PK)
+  - deal_id: UUID (FK → Deal, UNIQUE)
+  - created_by: UUID (FK → User)
+  - sponsorship_type: Enum [CASH, IN_KIND, COMBINED]
+  - sponsorship_value: Decimal (nullable — bắt buộc nếu CASH/COMBINED)
+  - in_kind_description: Text (nullable — bắt buộc nếu IN_KIND/COMBINED)
+  - key_terms: Text (tóm tắt điều khoản chính)
+  - status: Enum [PENDING_CONFIRMATION, CONFIRMED, REJECTED] (default: PENDING_CONFIRMATION)
+  - confirmed_by: UUID (FK → User, nullable)
+  - confirmed_at: DateTime (nullable)
+  - rejection_note: Text (nullable)
+  - created_at: DateTime
+  - updated_at: DateTime
+Relationships:
+  - DraftAgreement —(1:1)→ Deal
 
 Entity:        DealMessage
 Attributes:
@@ -380,10 +495,11 @@ Relationships:
 
 | Process Step | Classification | System Function (FR-ID) | Business Rules (BR-IDs) | Entity |
 |---|---|---|---|---|
-| 3. Nhắn tin trao đổi | SYSTEM-SUPPORTED | FR-0401 | BR-0401, BR-0402 | DealMessage |
+| 3. Nhắn tin trao đổi (có Data Masking — SF-13) | SYSTEM-SUPPORTED | FR-0401 | BR-0401, BR-0402 | DealMessage |
 | 3. Chia sẻ file trong thương thảo | SYSTEM-SUPPORTED | FR-0402 | BR-0403 | MessageAttachment |
 | 3. Đặt lịch họp/meeting | SYSTEM-SUPPORTED | FR-0403 | BR-0404 | Meeting |
 | 3. Phản hồi lịch họp | SYSTEM-SUPPORTED | FR-0404 | BR-0404 | Meeting |
 | [INFERRED] Ghi nhận kết quả họp | SYSTEM-SUPPORTED | FR-0405 | — | MeetingNote |
-| 3. Đồng thuận để tiến đến ký kết | SYSTEM-SUPPORTED | FR-0406 | BR-0405 | Deal |
+| BP03-1. Tạo thỏa thuận nháp | SYSTEM-SUPPORTED | FR-0408 | BR-0407 | DraftAgreement |
+| 3/BP03-1. Đồng thuận → AWAITING_PAYMENT | SYSTEM-SUPPORTED | FR-0406 | BR-0405 | Deal |
 | [INFERRED] Hủy bỏ thương thảo | SYSTEM-SUPPORTED | FR-0407 | BR-0406 | Deal |
