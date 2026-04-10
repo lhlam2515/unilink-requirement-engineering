@@ -249,6 +249,32 @@ Acceptance Criteria:
 Priority:      MUST
 ```
 
+### FR-0407: Hủy bỏ thương thảo
+
+```
+ID:            FR-0407
+Name:          Hủy bỏ thương thảo
+Description:   Hệ thống SHALL cho phép một trong hai bên hủy bỏ thương thảo tại bất kỳ thời điểm
+               nào khi deal đang ở trạng thái IN_PROGRESS. Bên hủy PHẢI cung cấp lý do.
+               Hệ thống SHALL chuyển deal sang trạng thái TERMINATED và thông báo cho bên còn lại.
+Classification: SYSTEM-SUPPORTED
+Actor:         Organizer hoặc Sponsor
+Trigger:       Actor nhấn "Hủy bỏ thương thảo"
+Inputs:        deal_id, terminated_by (UUID), termination_reason (text, required)
+Outputs:       deal.status = TERMINATED, terminated_at (timestamp)
+Business Rules: BR-0406
+Acceptance Criteria:
+  Given   deal đang ở trạng thái IN_PROGRESS
+  When    sponsor nhấn "Hủy bỏ" với lý do = "Đã quá ngân sách năm nay"
+  Then    hệ thống SHALL chuyển deal sang TERMINATED
+  And     hệ thống SHALL thông báo cho organizer bao gồm lý do hủy
+
+  Given   deal đang ở trạng thái AGREED
+  When    actor cố hủy bỏ
+  Then    hệ thống SHALL từ chối "Không thể hủy thương thảo đã đồng thuận. Vui lòng liên hệ hỗ trợ."
+Priority:      MUST
+```
+
 ### FR-0408: Tạo thỏa thuận nháp (Draft Agreement)
 
 ```
@@ -288,32 +314,6 @@ Acceptance Criteria:
   When    sponsor nhấn "Từ chối" với ghi chú = "Cần điều chỉnh giá trị tài trợ"
   Then    hệ thống SHALL chuyển draft agreement sang REJECTED
   And     bên tạo có thể tạo lại thỏa thuận nháp mới
-Priority:      MUST
-```
-
-### FR-0407: Hủy bỏ thương thảo
-
-```
-ID:            FR-0407
-Name:          Hủy bỏ thương thảo
-Description:   Hệ thống SHALL cho phép một trong hai bên hủy bỏ thương thảo tại bất kỳ thời điểm
-               nào khi deal đang ở trạng thái IN_PROGRESS. Bên hủy PHẢI cung cấp lý do.
-               Hệ thống SHALL chuyển deal sang trạng thái TERMINATED và thông báo cho bên còn lại.
-Classification: SYSTEM-SUPPORTED
-Actor:         Organizer hoặc Sponsor
-Trigger:       Actor nhấn "Hủy bỏ thương thảo"
-Inputs:        deal_id, terminated_by (UUID), termination_reason (text, required)
-Outputs:       deal.status = TERMINATED, terminated_at (timestamp)
-Business Rules: BR-0406
-Acceptance Criteria:
-  Given   deal đang ở trạng thái IN_PROGRESS
-  When    sponsor nhấn "Hủy bỏ" với lý do = "Đã quá ngân sách năm nay"
-  Then    hệ thống SHALL chuyển deal sang TERMINATED
-  And     hệ thống SHALL thông báo cho organizer bao gồm lý do hủy
-
-  Given   deal đang ở trạng thái AGREED
-  When    actor cố hủy bỏ
-  Then    hệ thống SHALL từ chối "Không thể hủy thương thảo đã đồng thuận. Vui lòng liên hệ hỗ trợ."
 Priority:      MUST
 ```
 
