@@ -52,7 +52,7 @@ Nội dung hợp đồng bao gồm:
 - **Quyền lợi của hai bên**
 - **Đồng thời ghi rõ cam kết và trách nhiệm của hai bên đối với nhau**
 
-Sau khi cả hai đều xác nhận nội dung hợp đồng, cả hai ký chữ ký điện tử của mình lên hợp đồng, và xuất tài liệu hợp đồng điện tử này để lưu trữ. Doanh nghiệp có nhu cầu đòi hỏi cần phải có hóa đơn đỏ cho các giao dịch tiền mặt để thực hiện việc kê khai sổ sách của phòng kế toán.
+Sau khi cả hai đều xác nhận nội dung hợp đồng, cả hai ký chữ ký điện tử của mình lên hợp đồng, và xuất tài liệu hợp đồng điện tử này để lưu trữ.
 
 ## 5. Thực hiện nghĩa vụ tài trợ
 
