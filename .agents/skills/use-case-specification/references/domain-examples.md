@@ -1,340 +1,335 @@
-# Full Worked Examples by Domain
+# Full RUP-Aligned Worked Examples by Domain
 
 ## Table of Contents
-
-- [Full Worked Examples by Domain](#full-worked-examples-by-domain)
-  - [Table of Contents](#table-of-contents)
-  - [E-Commerce: Place Order](#e-commerce-place-order)
-    - [UC-01: Place Order](#uc-01-place-order)
-  - [Banking: Transfer Funds](#banking-transfer-funds)
-    - [UC-02: Transfer Funds Between Accounts](#uc-02-transfer-funds-between-accounts)
-  - [SaaS: Manage Team Members](#saas-manage-team-members)
-    - [UC-03: Invite Team Member](#uc-03-invite-team-member)
-  - [Healthcare: Book Appointment](#healthcare-book-appointment)
-    - [UC-04: Book Appointment](#uc-04-book-appointment)
+1. [E-Commerce: Place Order](#e-commerce-place-order)
+2. [Banking: Transfer Funds](#banking-transfer-funds)
+3. [SaaS: Invite Team Member](#saas-invite-team-member)
+4. [Healthcare: Book Appointment](#healthcare-book-appointment)
 
 ---
 
 ## E-Commerce: Place Order
 
-### UC-01: Place Order
+# Use-Case Specification: Place Order
+**Version:** 1.0
 
-**Brief Description**
-The customer selects items, provides shipping and payment details, and submits an order for fulfillment.
+### Revision History
+| Date | Version | Description | Author |
+|------|---------|-------------|--------|
+| 01/Jan/25 | 1.0 | Initial version | BA Team |
 
-**Actors**
-
+### Actors
 | Role | Actor | Notes |
 |------|-------|-------|
-| Primary | Customer | Authenticated user initiating the purchase |
-| Secondary | Payment Gateway | Processes payment authorization |
-| Secondary | Inventory Service | Validates and reserves stock |
+| Primary | Customer | Authenticated user completing a purchase |
+| Secondary | Payment Gateway | Authorizes payment transactions |
+| Secondary | Inventory Service | Reserves stock |
+| Secondary | Notification Service | Sends order confirmation |
 
-**Preconditions**
+---
 
-- Customer is authenticated
-- At least one item is in the shopping cart
-- Items are in stock
+### 1. Brief Description
+This use case describes how an authenticated customer reviews their shopping cart, provides shipping and payment details, and submits an order for fulfillment.
 
-**Trigger**
-Customer proceeds to checkout from the shopping cart.
+---
 
-**Main Flow**
+### 2. Basic Flow of Events
 
-| Step | Actor | Action / System Response |
-|------|-------|--------------------------|
+> The use case begins when the Customer selects "Proceed to Checkout" from the shopping cart.
+
+| Step | Actor / System | Action |
+|------|----------------|--------|
 | 1 | Customer | Reviews cart contents and selects "Proceed to Checkout" |
 | 2 | System | Displays checkout form with shipping address and payment fields |
-| 3 | Customer | Enters or confirms shipping address |
-| 4 | System | Calculates shipping options and costs based on address |
+| 3 | Customer | Enters or confirms shipping address: street, city, postal code, and country |
+| 4 | System | Validates address completeness and retrieves available shipping methods with estimated costs |
 | 5 | Customer | Selects preferred shipping method |
-| 6 | Customer | Enters payment details |
-| 7 | System | Validates payment details format and completeness |
-| 8 | Customer | Reviews order summary and confirms submission |
-| 9 | System | Reserves inventory for all items in cart |
-| 10 | System | Submits payment authorization request |
-| 11 | System | Creates order with status "Confirmed" |
-| 12 | System | Sends order confirmation to customer's registered email |
+| 6 | Customer | Enters payment details: card number, expiry date, and CVV |
+| 7 | System | Validates payment detail format and completeness |
+| 8 | Customer | Reviews order summary — items, shipping, taxes, total — and confirms submission |
+| 9 | System | Reserves inventory for all items in cart *(See S1: Reserve Inventory)* |
+| 10 | System | Submits payment authorization request to Payment Gateway |
+| 11 | System | Creates order record with status "Confirmed" and a unique order ID |
+| 12 | System | Sends order confirmation to customer's registered email address |
 
-**Alternate Flows**
+---
 
-> AF-01.A: Customer Uses Saved Address (triggered at Step 3)
+### 3. Alternative Flows
 
-| Step | Actor / System | Action |
-|------|----------------|--------|
-| 3a | Customer | Selects a previously saved shipping address |
-| 3b | System | Pre-fills address fields with saved data |
-| 3c | — | Resumes at Step 4 |
+#### 3.1 Shipping Address
 
-> AF-01.B: Apply Discount Code (triggered at Step 8)
+##### AF-01.1: Customer Uses Saved Address (triggered at Step 3)
+> *Triggered at Step 3 when the customer selects a previously saved address.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
-| 8a | Customer | Enters a discount code before confirming |
-| 8b | System | Validates the discount code |
-| 8c | System | Applies discount and updates order total |
-| 8d | — | Resumes at Step 8 |
+| 3a | Customer | Selects a previously saved shipping address from the list |
+| 3b | System | Pre-fills address fields with saved address data |
+| 3c | System | Resume at Step 4 |
 
-**Exception Flows**
+#### 3.2 Discounts
 
-> EF-01.1: Item Out of Stock (triggered at Step 9)
-
-| Step | Actor / System | Action |
-|------|----------------|--------|
-| 9a | System | Detects that one or more items are no longer available |
-| 9b | System | Notifies customer of unavailable items |
-| 9c | Customer | Removes unavailable items or cancels checkout |
-| 9d | System | If cancelled, releases any partial reservations and ends use case |
-
-> EF-01.2: Payment Declined (triggered at Step 10)
+##### AF-01.2: Customer Applies Discount Code (triggered at Step 8)
+> *Triggered at Step 8 when the customer enters a discount code before confirming.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
-| 10a | System | Receives payment decline response from gateway |
+| 8a | Customer | Enters a discount code in the provided field |
+| 8b | System | Validates the discount code against active promotions |
+| 8c | System | Applies the discount and updates the order total |
+| 8d | System | Resume at Step 8 |
+
+#### 3.3 Inventory
+
+##### AF-01.3: Item Out of Stock (triggered at Step 9)
+> *Triggered at Step 9 when one or more items are no longer available.*
+
+| Step | Actor / System | Action |
+|------|----------------|--------|
+| 9a | System | Detects that one or more items cannot be reserved |
+| 9b | System | Notifies the customer of the unavailable items by name |
+| 9c | Customer | Removes unavailable items and continues, or cancels checkout |
+| 9d | System | If cancelled: releases any partial reservations. Use case ends. |
+
+#### 3.4 Payment
+
+##### AF-01.4: Payment Declined (triggered at Step 10)
+> *Triggered at Step 10 when the Payment Gateway rejects the authorization.*
+
+| Step | Actor / System | Action |
+|------|----------------|--------|
+| 10a | System | Receives payment decline response from the Payment Gateway |
 | 10b | System | Releases reserved inventory |
-| 10c | System | Notifies customer that payment was unsuccessful |
+| 10c | System | Notifies the customer that the payment was unsuccessful |
 | 10d | Customer | May re-enter payment details or cancel the order |
+| 10e | System | If retrying: resume at Step 6. If cancelling: use case ends. |
 
-**Postconditions**
+---
 
-*Success:*
+### 4. Subflows
 
-- Order record exists with status "Confirmed" and a unique order ID
-- Inventory decremented for each ordered item
-- Customer receives email confirmation
+#### S1: Reserve Inventory
 
-*Failure:*
+| Step | Actor / System | Action |
+|------|----------------|--------|
+| 1 | System | Requests inventory reservation for each line item (product ID, quantity) |
+| 2 | System | Inventory Service confirms reservation for each item |
+| 3 | System | Returns to calling flow at Step 10 |
 
-- No order is created
-- No charge is applied to the customer
-- Cart contents are preserved
+---
 
-**Business Rules**
+### 5. Key Scenarios
 
-- BR-1: Discount codes cannot be combined unless explicitly flagged as stackable
-- BR-2: Inventory must be reserved before payment is processed
-- BR-3: Orders cannot be placed for items with zero stock
+| Scenario ID | Name | Description |
+|-------------|------|-------------|
+| SC-01-01 | Successful Purchase | Customer pays on first attempt; order confirmed and email sent |
+| SC-01-02 | Payment Declined, Retry | First card declined; customer enters a second card and succeeds |
+| SC-01-03 | Item Out of Stock | Item unavailable at reservation; customer removes it and completes order |
+| SC-01-04 | Discount Code Applied | Customer applies valid code; total reduced before payment |
+
+---
+
+### 6. Preconditions
+
+#### 6.1 Authenticated Session
+- The customer is authenticated and has an active session.
+
+#### 6.2 Non-Empty Cart
+- At least one item is present in the shopping cart.
+
+#### 6.3 Stock Available
+- All cart items are in stock at the time checkout begins.
+
+---
+
+### 7. Postconditions
+
+#### 7.1 Success
+- Order record exists with status "Confirmed" and a unique order ID.
+- Inventory is decremented for each purchased item.
+- Customer receives an email order confirmation.
+
+#### 7.2 Failure
+- No order record is created.
+- No payment is charged.
+- Cart contents are preserved for the customer.
+
+---
+
+### 8. Extension Points
+
+#### 8.1 Apply Loyalty Discount
+> *Location: After Step 8 (order review), when the customer has redeemable loyalty points.*
+> The use case "Apply Loyalty Discount" <<extends>> this use case at this point.
+
+---
+
+### 9. Special Requirements
+
+#### 9.1 Payment Authorization Latency
+- Payment authorization (Step 10) must complete within 5 seconds under normal load.
+
+#### 9.2 Data Security
+- All payment details must be transmitted and processed over TLS 1.2 or higher.
+- Card numbers must not be stored in application logs.
+
+---
+
+### 10. Additional Information
+
+**Assumptions:**
+- The payment gateway returns a synchronous authorization response.
+- Inventory reservation is held for 15 minutes if payment fails.
+
+**Related Use Cases:**
+- `<<include>>` UC-00: Authenticate User — required precondition
+- `<<extend>>` UC-05: Apply Loyalty Discount — optional at Extension Point 8.1
 
 ---
 
 ## Banking: Transfer Funds
 
-### UC-02: Transfer Funds Between Accounts
+# Use-Case Specification: Transfer Funds Between Accounts
+**Version:** 1.0
 
-**Brief Description**
-An authenticated account holder initiates a transfer of a specified amount from one of their accounts to another account, either internal or external.
-
-**Actors**
-
+### Actors
 | Role | Actor | Notes |
 |------|-------|-------|
-| Primary | Account Holder | Authenticated user initiating the transfer |
-| Secondary | Core Banking System | Executes the debit and credit transactions |
+| Primary | Account Holder | Authenticated individual initiating the transfer |
+| Secondary | Core Banking System | Executes debit and credit operations |
 
-**Preconditions**
+---
 
-- Account holder is authenticated and session is active
-- Source account is active and in good standing
-- Account holder has at least one eligible source account
+### 1. Brief Description
+This use case describes how an authenticated account holder transfers a specified amount from a source account to a destination account, either internal or external, immediately or on a scheduled date.
 
-**Trigger**
-Account holder selects "Transfer Funds" from the account dashboard.
+---
 
-**Main Flow**
+### 2. Basic Flow of Events
 
-| Step | Actor | Action / System Response |
-|------|-------|--------------------------|
+> The use case begins when the Account Holder selects "Transfer Funds" from the account dashboard.
+
+| Step | Actor / System | Action |
+|------|----------------|--------|
 | 1 | Account Holder | Selects source account from list of eligible accounts |
 | 2 | System | Displays current balance and daily transfer limit for selected account |
-| 3 | Account Holder | Specifies destination account and transfer amount |
-| 4 | System | Validates that amount does not exceed available balance and daily limit |
-| 5 | Account Holder | Selects transfer date (immediate or scheduled) |
-| 6 | Account Holder | Reviews transfer summary and confirms |
-| 7 | System | Applies applicable security verification (see <<include>> Verify Identity) |
+| 3 | Account Holder | Enters destination account number and transfer amount |
+| 4 | System | Validates that the amount does not exceed available balance or daily transfer limit |
+| 5 | Account Holder | Selects transfer date: immediate or a future scheduled date |
+| 6 | Account Holder | Reviews transfer summary and confirms submission |
+| 7 | System | Applies identity verification *(See S1: Verify Account Holder Identity)* |
 | 8 | System | Debits source account and credits destination account atomically |
-| 9 | System | Records transaction with unique reference number |
-| 10 | System | Sends transfer confirmation to account holder |
+| 9 | System | Records transaction with a unique reference number and timestamp |
+| 10 | System | Sends transfer confirmation to the account holder's registered contact |
 
-**Alternate Flows**
+---
 
-> AF-02.A: Scheduled Future Transfer (triggered at Step 5)
+### 3. Alternative Flows
+
+#### 3.1 Transfer Timing
+
+##### AF-02.1: Scheduled Future Transfer (triggered at Step 5)
+> *Triggered at Step 5 when the account holder selects a future date.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
 | 5a | Account Holder | Selects a future date for the transfer |
-| 5b | System | Creates a scheduled transfer record |
-| 5c | System | Confirms scheduled transfer and displays the scheduled date |
-| 5d | — | Use case ends; transfer executes on scheduled date |
+| 5b | System | Creates a scheduled transfer record with the specified date |
+| 5c | System | Confirms the scheduled transfer date to the account holder. Use case ends; transfer executes on the scheduled date. |
 
-**Exception Flows**
+#### 3.2 Validation Failures
 
-> EF-02.1: Insufficient Funds (triggered at Step 4)
-
-| Step | Actor / System | Action |
-|------|----------------|--------|
-| 4a | System | Detects that requested amount exceeds available balance |
-| 4b | System | Notifies account holder of insufficient funds |
-| 4c | Account Holder | May enter a lower amount or cancel the transfer |
-
-> EF-02.2: Daily Limit Exceeded (triggered at Step 4)
+##### AF-02.2: Insufficient Funds (triggered at Step 4)
+> *Triggered at Step 4 when the requested amount exceeds available balance.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
-| 4a | System | Detects that transfer would exceed daily limit |
-| 4b | System | Displays remaining available limit for today |
-| 4c | Account Holder | May adjust amount or cancel |
+| 4a | System | Detects that the requested amount exceeds the available balance |
+| 4b | System | Notifies the account holder of the insufficient balance |
+| 4c | Account Holder | May enter a lower amount or cancel |
+| 4d | System | If retrying: resume at Step 3. If cancelling: use case ends. |
 
-**Postconditions**
+##### AF-02.3: Daily Transfer Limit Exceeded (triggered at Step 4)
+> *Triggered at Step 4 when the transfer would exceed the daily limit.*
 
-*Success:*
-
-- Source account balance reduced by transfer amount
-- Destination account balance increased by transfer amount
-- Transaction record created with reference ID and timestamp
-
-*Failure:*
-
-- Account balances remain unchanged
-- No transaction record is created
+| Step | Actor / System | Action |
+|------|----------------|--------|
+| 4a | System | Detects that the transfer would exceed the account's daily limit |
+| 4b | System | Displays the remaining available transfer limit for today |
+| 4c | Account Holder | May adjust the amount or cancel |
+| 4d | System | If retrying: resume at Step 3. If cancelling: use case ends. |
 
 ---
 
-## SaaS: Manage Team Members
+### 4. Subflows
 
-### UC-03: Invite Team Member
-
-**Brief Description**
-A workspace administrator invites a new member to join the workspace by sending an invitation to their email address and assigning an initial role.
-
-**Actors**
-
-| Role | Actor | Notes |
-|------|-------|-------|
-| Primary | Administrator | Has permission to manage team membership |
-| Secondary | Email Service | Delivers the invitation |
-
-**Preconditions**
-
-- Administrator is authenticated
-- Workspace has not reached its member seat limit
-- Administrator has "Manage Members" permission
-
-**Trigger**
-Administrator selects "Invite Member" from the Team Settings page.
-
-**Main Flow**
-
-| Step | Actor | Action / System Response |
-|------|-------|--------------------------|
-| 1 | Administrator | Enters the email address of the person to invite |
-| 2 | System | Validates email format and checks if address is already a member |
-| 3 | Administrator | Selects a role to assign to the new member |
-| 4 | System | Displays invitation preview with role and access summary |
-| 5 | Administrator | Confirms and sends the invitation |
-| 6 | System | Creates a pending invitation record with expiry of 7 days |
-| 7 | System | Sends invitation email with a secure join link |
-| 8 | System | Displays confirmation and the pending invitee in the member list |
-
-**Exception Flows**
-
-> EF-03.1: Email Already a Member (triggered at Step 2)
+#### S1: Verify Account Holder Identity
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
-| 2a | System | Detects that email is already associated with an active member |
-| 2b | System | Notifies administrator that this person is already a member |
-| 2c | — | Use case ends without sending invitation |
-
-> EF-03.2: Seat Limit Reached (triggered at Step 5)
-
-| Step | Actor / System | Action |
-|------|----------------|--------|
-| 5a | System | Detects that workspace is at maximum seat capacity |
-| 5b | System | Notifies administrator and presents upgrade options |
-| 5c | — | Use case ends |
-
-**Postconditions**
-
-*Success:*
-
-- Pending invitation record exists, expiring in 7 days
-- Invitee receives an email with a join link
-- Administrator sees invitee in "Pending" state in the member list
-
-*Failure:*
-
-- No invitation is created or sent
-- Workspace membership is unchanged
+| 1 | System | Prompts account holder for secondary verification (e.g., OTP sent to registered mobile) |
+| 2 | Account Holder | Submits the verification code |
+| 3 | System | Validates the code against the issued OTP |
+| 4 | System | Returns to calling flow at Step 8 |
 
 ---
 
-## Healthcare: Book Appointment
+### 5. Key Scenarios
 
-### UC-04: Book Appointment
+| Scenario ID | Name | Description |
+|-------------|------|-------------|
+| SC-02-01 | Immediate Transfer, Success | Transfer completes immediately; both accounts updated |
+| SC-02-02 | Scheduled Transfer | Transfer is queued for a future date |
+| SC-02-03 | Insufficient Funds | Account holder reduces amount and retries successfully |
 
-**Brief Description**
-A patient books a medical appointment with a specific provider by selecting an available time slot.
+---
 
-**Actors**
+### 6. Preconditions
 
-| Role | Actor | Notes |
-|------|-------|-------|
-| Primary | Patient | Authenticated individual seeking care |
-| Secondary | Provider | The clinician whose schedule is queried |
-| Secondary | Notification Service | Sends confirmations and reminders |
+#### 6.1 Authenticated Session
+- Account holder is authenticated and the session is active.
 
-**Preconditions**
+#### 6.2 Eligible Source Account
+- Account holder has at least one active account in good standing.
 
-- Patient has an active account and is authenticated
-- Patient has selected or has an assigned provider
+---
 
-**Trigger**
-Patient selects "Book Appointment" from the patient portal.
+### 7. Postconditions
 
-**Main Flow**
+#### 7.1 Success
+- Source account balance is reduced by the transfer amount.
+- Destination account balance is increased by the transfer amount.
+- Transaction record exists with a unique reference ID and timestamp.
 
-| Step | Actor | Action / System Response |
-|------|-------|--------------------------|
-| 1 | Patient | Selects appointment type (e.g., routine, follow-up, urgent) |
-| 2 | System | Displays available providers eligible for the selected appointment type |
-| 3 | Patient | Selects preferred provider |
-| 4 | System | Retrieves and displays available time slots for the next 30 days |
-| 5 | Patient | Selects a preferred date and time slot |
-| 6 | System | Displays appointment summary for confirmation |
-| 7 | Patient | Confirms the booking |
-| 8 | System | Reserves the selected time slot in the provider's schedule |
-| 9 | System | Creates appointment record with confirmation number |
-| 10 | System | Sends confirmation to patient via email and in-app notification |
+#### 7.2 Failure
+- Account balances remain unchanged.
+- No transaction record is created.
 
-**Alternate Flows**
+---
 
-> AF-04.A: No Slots Available with Preferred Provider (triggered at Step 4)
+### 8. Extension Points
 
-| Step | Actor / System | Action |
-|------|----------------|--------|
-| 4a | System | Detects no available slots within 30 days for selected provider |
-| 4b | System | Notifies patient and offers to show alternative providers |
-| 4c | Patient | Accepts suggestion or cancels booking |
+#### 8.1 Apply Transfer Fee Waiver
+> *Location: After Step 4, when the account holder's plan includes fee waivers for external transfers.*
 
-**Exception Flows**
+---
 
-> EF-04.1: Slot Taken During Booking (triggered at Step 8)
+### 9. Special Requirements
 
-| Step | Actor / System | Action |
-|------|----------------|--------|
-| 8a | System | Detects selected slot was booked by another patient concurrently |
-| 8b | System | Notifies patient that slot is no longer available |
-| 8c | System | Returns patient to available slots view (Step 4) |
+#### 9.1 Atomicity
+- Debit and credit operations (Step 8) must be executed as a single atomic transaction.
 
-**Postconditions**
+#### 9.2 Audit Trail
+- All transfer attempts — successful or failed — must be logged with actor ID, timestamp, and amount.
 
-*Success:*
+---
 
-- Appointment record exists with unique confirmation number
-- Provider's slot is marked as reserved
-- Patient receives confirmation via email and notification
+### 10. Additional Information
 
-*Failure:*
+**Assumptions:**
+- OTP delivery is handled by the Core Banking System's messaging service.
+- Scheduled transfers are executed by a batch process at 00:01 on the scheduled date.
 
-- No appointment is created
-- Provider's schedule is unchanged
+**Related Use Cases:**
+- `<<include>>` UC-00: Authenticate Session
+- `<<include>>` S1: Verify Account Holder Identity
