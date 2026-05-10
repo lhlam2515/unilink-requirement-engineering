@@ -1,11 +1,8 @@
-# UC-49: Xử lý vi phạm ký kết hợp đồng
-
-**Brief Description**
-> Authenticated User (bên đã hoàn tất nghĩa vụ) báo cáo đối tác khi hợp đồng đã quá hạn ký 72 giờ nhưng chưa đủ 2 chữ ký. Hệ thống tạm thời đóng băng tài khoản bên bị tố cáo, gửi cảnh báo cuối cùng và cho thêm 24 giờ ân hạn để hoàn tất ký kết. Nếu hết ân hạn mà vẫn chưa đủ 2 chữ ký, hệ thống đóng thương vụ và kích hoạt chế tài.
+# Use-Case Specification: UC-49 — Xử lý vi phạm ký kết hợp đồng
 
 ---
 
-**Actors**
+### Actors
 
 | Role | Actor | Notes |
 |------|-------|-------|
@@ -16,24 +13,21 @@
 
 ---
 
-**Preconditions**
+### 1. Brief Description
 
-- Actor đã đăng nhập vào hệ thống
-- Contract đã vào trạng thái hard-lock sau 2/2 payment
-- Đã qua signing_deadline_at + 72 giờ nhưng contract chưa SIGNED
-- Actor là bên đã hoàn tất nghĩa vụ trong deal đó
+> Authenticated User (bên đã hoàn tất nghĩa vụ) báo cáo đối tác khi hợp đồng đã quá hạn ký 72 giờ nhưng chưa đủ 2 chữ ký. Hệ thống tạm thời đóng băng tài khoản bên bị tố cáo, gửi cảnh báo cuối cùng và cho thêm 24 giờ ân hạn để hoàn tất ký kết. Nếu hết ân hạn mà vẫn chưa đủ 2 chữ ký, hệ thống đóng thương vụ và kích hoạt chế tài.
 
 ---
+
+### 2. Flow of Events
 
 **Trigger**
 > Actor nhấn "Tố cáo đối tác" trên màn hình hợp đồng.
 
----
+#### 2.1 Basic Flow
 
-**Main Flow (Basic Path)**
-
-| Step | Actor | Action / System Response |
-|------|-------|--------------------------|
+| Step | Actor / System | Action |
+|------|----------------|--------|
 | 1 | Authenticated User | Nhấn "Tố cáo đối tác" |
 | 2 | System | Kiểm tra contract đã quá hạn 72 giờ và chưa đủ 2 chữ ký |
 | 3 | System | Hiển thị form report với lý do và bằng chứng tùy chọn |
@@ -44,11 +38,11 @@
 | 8 | System | Ghi nhận final_warning_expires_at |
 | 9 | System | Use case kết thúc — chờ hết ân hạn hoặc bên vi phạm ký xong |
 
----
+#### 2.2 Alternate Flows
 
-**Alternate Flows**
-
-> AF-49.a: Bên vi phạm hoàn tất chữ ký trong 24 giờ ân hạn
+##### AF-49.a: Bên vi phạm hoàn tất chữ ký trong 24 giờ ân hạn
+>
+> *Triggered at Step 7 of the Basic Flow when bên vi phạm ký xong trong ân hạn.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
@@ -56,17 +50,19 @@
 | 7b | System | Chuyển contract sang SIGNED và đóng breach case |
 | 7c | System | Gỡ đóng băng nếu chính sách cho phép |
 
----
+#### 2.3 Exception Flows
 
-**Exception Flows**
-
-> EF-49.1: Chưa quá hạn 72 giờ
+##### EF-49.1: Chưa quá hạn 72 giờ
+>
+> *Triggered at Step 2 of the Basic Flow when chưa đến thời điểm tố cáo.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
 | 2a | System | Từ chối report với thông báo "Chưa đến thời điểm tố cáo" |
 
-> EF-49.2: Report thiếu lý do
+##### EF-49.2: Report thiếu lý do
+>
+> *Triggered at Step 4 of the Basic Flow when lý do trống.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
@@ -75,24 +71,74 @@
 
 ---
 
-**Postconditions**
+### 3. Subflows
 
-*Success (report hợp lệ):*
+None.
+
+---
+
+### 4. Key Scenarios
+
+| Scenario ID | Name | Description |
+|-------------|------|-------------|
+| SC-49-01 | Report hợp lệ | Bên đã hoàn tất nghĩa vụ report đối tác; đóng băng tạm + 24 giờ ân hạn |
+| SC-49-02 | Hoàn tất trong ân hạn | Bên vi phạm ký xong trong 24 giờ; contract SIGNED, breach case đóng (AF-49.a) |
+
+---
+
+### 5. Preconditions
+
+#### 5.1 Actor đã xác thực
+
+- Actor đã đăng nhập vào hệ thống
+
+#### 5.2 Contract đã vào hard-lock
+
+- Contract đã vào trạng thái hard-lock sau 2/2 payment
+
+#### 5.3 Đã quá hạn ký 72 giờ
+
+- Đã qua signing_deadline_at + 72 giờ nhưng contract chưa SIGNED
+
+#### 5.4 Actor đã hoàn tất nghĩa vụ
+
+- Actor là bên đã hoàn tất nghĩa vụ trong deal đó
+
+---
+
+### 6. Postconditions
+
+#### 6.1 Success (report hợp lệ)
+
 - Contract breach case được tạo
 - Bên bị tố cáo bị đóng băng tạm thời
 - Final warning 24h được kích hoạt
 
-*Success (hết ân hạn mà không ký):*
+#### 6.2 Success (hết ân hạn mà không ký)
+
 - Thương vụ bị đóng
 - Chế tài tương ứng được thực thi
 
-*Failure:*
+#### 6.3 Failure
+
 - Không tạo report
 - Trạng thái contract/deal không đổi
 
 ---
 
-**Business Rules**
+### 7. Extension Points
+
+None identified.
+
+---
+
+### 8. Special Requirements
+
+None identified.
+
+---
+
+### 9. Business Rules
 
 - BR-1406: Chỉ bên đã hoàn tất nghĩa vụ mới được mở quyền tố cáo khi quá hạn ký 72 giờ
 - BR-1407: Sau report hợp lệ phải cấp thêm 24 giờ ân hạn
@@ -100,7 +146,14 @@
 
 ---
 
-**Notes / Assumptions**
+### 10. Additional Information
+
+**Assumptions:**
 
 - Use case này là nhánh hậu hard-lock, thay thế hoàn toàn cơ chế hủy đồng thuận trước đây
-- Liên kết: SF-14, UC-22, UC-24, UC-25
+
+**Related Use Cases:**
+
+- UC-22: Ký hợp đồng điện tử (`<<extend>>` base — UC-49 mở rộng UC-22)
+- UC-24: Yêu cầu hóa đơn VAT (sequential — nếu contract SIGNED sau ân hạn)
+- UC-25: Theo dõi trạng thái nghĩa vụ (sequential — sau khi contract SIGNED)

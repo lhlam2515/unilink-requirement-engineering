@@ -1,11 +1,8 @@
-# UC-55: Đối soát thanh toán thủ công
-
-**Brief Description**
-> Admin thực hiện đối soát thủ công khi webhook thanh toán thất bại, không khớp, hoặc bị trùng lặp. Admin xác nhận thanh toán đã nhận được dựa trên bằng chứng ngân hàng và cập nhật trạng thái ServiceFeeTransaction.
+# Use-Case Specification: UC-55 — Đối soát thanh toán thủ công
 
 ---
 
-**Actors**
+### Actors
 
 | Role | Actor | Notes |
 |------|-------|-------|
@@ -14,91 +11,138 @@
 
 ---
 
-**Preconditions**
+### 1. Brief Description
 
-- Admin đã đăng nhập với quyền quản trị
-- Có ít nhất một giao dịch cần đối soát (MISMATCH, UNMATCHED, hoặc không nhận webhook > 4 giờ)
+> Admin thực hiện đối soát thủ công khi webhook thanh toán thất bại, không khớp, hoặc bị trùng lặp. Admin xác nhận thanh toán đã nhận được dựa trên bằng chứng ngân hàng và cập nhật trạng thái ServiceFeeTransaction.
 
 ---
+
+### 2. Flow of Events
 
 **Trigger**
 > Admin nhận cảnh báo hệ thống về giao dịch cần đối soát, hoặc truy cập trang "Đối soát thanh toán".
 
----
+#### 2.1 Basic Flow
 
-**Main Flow (Basic Path)**
-
-| Step | Actor | Action / System Response |
-|------|-------|--------------------------|
+| Step | Actor / System | Action |
+|------|----------------|--------|
 | 1 | Admin | Truy cập trang "Đối soát thanh toán" |
-| 2 | System | Hiển thị danh sách giao dịch cần đối soát: MISMATCH, UNMATCHED, hoặc chưa nhận webhook > 4 giờ |
+| 2 | System | Hiển thị danh sách: MISMATCH, UNMATCHED, hoặc chưa nhận webhook > 4 giờ |
 | 3 | Admin | Chọn một giao dịch để đối soát |
-| 4 | System | Hiển thị chi tiết: transaction_reference, số tiền kỳ vọng, webhook data (nếu có), deal info |
-| 5 | Admin | Xác nhận tiền đã vào tài khoản nền tảng (kiểm tra bên ngoài hệ thống) |
+| 4 | System | Hiển thị chi tiết: transaction_reference, số tiền kỳ vọng, webhook data, deal info |
+| 5 | Admin | Xác nhận tiền đã vào tài khoản (kiểm tra bên ngoài hệ thống) |
 | 6 | Admin | Nhập bank_reference thực tế và nhấn "Xác nhận thanh toán" |
 | 7 | System | Cập nhật ServiceFeeTransaction.status = PAID |
 | 8 | System | Ghi audit log: "Manual reconciliation by [admin] at [time], bank_ref = [ref]" |
-| 9 | System | Kích hoạt chuỗi xử lý thanh toán bình thường (cập nhật PaywallSession, thông báo, v.v.) |
+| 9 | System | Kích hoạt chuỗi xử lý thanh toán bình thường (PaywallSession, thông báo, v.v.) |
 | 10 | System | Use case kết thúc thành công |
 
----
+#### 2.2 Alternate Flows
 
-**Alternate Flows**
-
-> AF-55.a: Xác nhận giao dịch trùng lặp (triggered at Step 3)
-
-| Step | Actor / System | Action |
-|------|----------------|--------|
-| 3a | Admin | Chọn giao dịch có processing_result = DUPLICATE |
-| 3b | System | Hiển thị webhook gốc đã xử lý và webhook trùng lặp |
-| 3c | Admin | Xác nhận đây là trùng lặp thực sự, đánh dấu "Đã xác nhận trùng" |
-| 3d | System | Ghi nhận, không có hành động thêm |
-
-> AF-55.b: Từ chối đối soát (triggered at Step 5)
+##### AF-55.a: Xác nhận giao dịch trùng lặp
+>
+> *Triggered at Step 3 of the Basic Flow when processing_result = DUPLICATE.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
-| 5a | Admin | Xác nhận tiền KHÔNG vào tài khoản, chọn "Từ chối đối soát" |
-| 5b | Admin | Nhập lý do từ chối |
-| 5c | System | Giữ nguyên trạng thái giao dịch, ghi log "Rejected reconciliation" |
-| 5d | System | Tiếp tục áp dụng quy trình 48h timeout bình thường |
+| 3a | Admin | Chọn giao dịch DUPLICATE |
+| 3b | System | Hiển thị webhook gốc và webhook trùng |
+| 3c | Admin | Xác nhận trùng lặp thực sự, đánh dấu "Đã xác nhận trùng" |
+| 3d | System | Ghi nhận, không hành động thêm |
 
----
-
-**Exception Flows**
-
-> EF-55.1: Giao dịch đã được xử lý (triggered at Step 3)
+##### AF-55.b: Từ chối đối soát
+>
+> *Triggered at Step 5 of the Basic Flow when tiền KHÔNG vào tài khoản.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
-| 3a | System | Phát hiện giao dịch đã có status = PAID (webhook đến sau khi admin mở trang) |
-| 3b | System | Hiển thị "Giao dịch đã được xử lý tự động" |
-| 3c | Admin | Quay lại danh sách |
+| 5a | Admin | Chọn "Từ chối đối soát", nhập lý do |
+| 5b | System | Giữ nguyên trạng thái, ghi log "Rejected reconciliation" |
+| 5c | System | Tiếp tục áp dụng quy trình 48h timeout bình thường |
+
+#### 2.3 Exception Flows
+
+##### EF-55.1: Giao dịch đã được xử lý
+>
+> *Triggered at Step 3 of the Basic Flow when status đã = PAID.*
+
+| Step | Actor / System | Action |
+|------|----------------|--------|
+| 3a | System | Hiển thị "Giao dịch đã được xử lý tự động" |
+| 3b | Admin | Quay lại danh sách |
 
 ---
 
-**Postconditions**
+### 3. Subflows
 
-*Success (xác nhận thanh toán):*
+None.
+
+---
+
+### 4. Key Scenarios
+
+| Scenario ID | Name | Description |
+|-------------|------|-------------|
+| SC-55-01 | Đối soát thành công | Admin xác nhận thanh toán; ServiceFeeTransaction → PAID |
+| SC-55-02 | Từ chối đối soát | Tiền không vào; giữ nguyên trạng thái (AF-55.b) |
+| SC-55-03 | Giao dịch trùng | Admin xác nhận trùng lặp (AF-55.a) |
+
+---
+
+### 5. Preconditions
+
+#### 5.1 Admin đã xác thực
+
+- Admin đã đăng nhập với quyền quản trị
+
+#### 5.2 Có giao dịch cần đối soát
+
+- Có ít nhất một giao dịch MISMATCH, UNMATCHED, hoặc không nhận webhook > 4 giờ
+
+---
+
+### 6. Postconditions
+
+#### 6.1 Success (xác nhận thanh toán)
+
 - ServiceFeeTransaction chuyển sang PAID
 - Audit log ghi nhận đối soát thủ công
-- PaywallSession được cập nhật payment_count
+- PaywallSession cập nhật payment_count
 - Nếu 2/2: kích hoạt unlock + hợp đồng tự động
 
-*Failure:*
+#### 6.2 Failure
+
 - Giao dịch vẫn ở trạng thái chờ đối soát
 
 ---
 
-**Business Rules**
+### 7. Extension Points
+
+None identified.
+
+---
+
+### 8. Special Requirements
+
+None identified.
+
+---
+
+### 9. Business Rules
 
 - BR-1405: Xử lý webhook idempotent, manual reconciliation yêu cầu audit log bắt buộc
 - BR-1205: Đối soát dựa trên transaction_reference và exact match
 
 ---
 
-**Notes / Assumptions**
+### 10. Additional Information
 
-- Admin xác nhận thanh toán dựa trên kiểm tra NGOÀI hệ thống (internet banking, sao kê ngân hàng)
+**Assumptions:**
+
+- Admin xác nhận dựa trên kiểm tra NGOÀI hệ thống (internet banking, sao kê)
 - Hệ thống ghi cảnh báo khi không nhận webhook > 4 giờ sau khi tạo QR
-- Liên kết: UC-50 (thanh toán bình thường), UC-54 (báo cáo doanh thu)
+
+**Related Use Cases:**
+
+- UC-50: Thanh toán phí dịch vụ (sequential — thanh toán bình thường)
+- UC-54: Xem báo cáo doanh thu (sequential — ảnh hưởng doanh thu)

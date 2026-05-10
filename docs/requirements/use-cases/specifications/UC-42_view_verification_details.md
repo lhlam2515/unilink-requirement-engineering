@@ -1,11 +1,8 @@
-# UC-42: Xem chi tiết hồ sơ xác thực
-
-**Brief Description**
-> Admin xem toàn bộ thông tin chi tiết của một hồ sơ xác thực tổ chức, bao gồm thông tin cơ bản, thông tin bổ sung, tài liệu minh chứng (có thể xem/tải về), và lịch sử các lần gửi/xử lý hồ sơ trước đó. Đây là bước bắt buộc trước khi thực hiện quyết định phê duyệt, từ chối, hoặc yêu cầu bổ sung.
+# Use-Case Specification: UC-42 — Xem chi tiết hồ sơ xác thực
 
 ---
 
-**Actors**
+### Actors
 
 | Role | Actor | Notes |
 |------|-------|-------|
@@ -14,107 +11,145 @@
 
 ---
 
-**Preconditions**
+### 1. Brief Description
 
-- Admin đã đăng nhập vào hệ thống với vai trò `admin`
-- Hồ sơ xác thực tồn tại trong hệ thống
+> Admin xem toàn bộ thông tin chi tiết của một hồ sơ xác thực tổ chức, bao gồm thông tin cơ bản, thông tin bổ sung, tài liệu minh chứng (xem/tải về), và lịch sử các lần gửi/xử lý trước đó. Đây là bước bắt buộc trước khi phê duyệt, từ chối, hoặc yêu cầu bổ sung.
 
 ---
+
+### 2. Flow of Events
 
 **Trigger**
 > Admin nhấn vào một hồ sơ trong danh sách chờ duyệt (UC-41).
 
----
+#### 2.1 Basic Flow
 
-**Main Flow (Basic Path)**
-
-| Step | Actor | Action / System Response |
-|------|-------|--------------------------|
-| 1 | Admin | Nhấn vào hồ sơ cần xem chi tiết trong danh sách |
+| Step | Actor / System | Action |
+|------|----------------|--------|
+| 1 | Admin | Nhấn vào hồ sơ cần xem chi tiết |
 | 2 | System | Truy xuất thông tin đầy đủ của hồ sơ xác thực |
 | 3 | System | Hiển thị thông tin cơ bản: tên tổ chức, vai trò, email, địa chỉ liên hệ |
-| 4 | System | Hiển thị thông tin bổ sung theo vai trò (fanpage, MST, giấy tờ...) |
-| 5 | System | Hiển thị danh sách tài liệu minh chứng đã tải lên với nút preview/download |
-| 6 | System | Hiển thị lịch sử xác thực (tất cả lần gửi và xử lý trước đó theo thứ tự thời gian) |
-| 7 | System | Use case kết thúc thành công — chi tiết hồ sơ đã được hiển thị |
+| 4 | System | Hiển thị thông tin bổ sung theo vai trò |
+| 5 | System | Hiển thị danh sách tài liệu minh chứng với nút preview/download |
+| 6 | System | Hiển thị lịch sử xác thực (tất cả lần gửi và xử lý theo thứ tự thời gian) |
+| 7 | System | Use case kết thúc thành công |
 
----
+#### 2.2 Alternate Flows
 
-**Alternate Flows**
-
-> AF-42.a: Xem trước tài liệu minh chứng (triggered at Step 5)
+##### AF-42.a: Xem trước tài liệu minh chứng
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
-| 5a | Admin | Nhấn nút "Xem trước" trên một tài liệu |
-| 5b | System | Hiển thị preview tài liệu (PDF viewer hoặc image viewer) |
+| 5a | Admin | Nhấn "Xem trước" → System hiển thị preview (PDF/image viewer) |
 
-> AF-42.b: Tải về tài liệu minh chứng (triggered at Step 5)
+##### AF-42.b: Tải về tài liệu minh chứng
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
-| 5c | Admin | Nhấn nút "Tải về" trên một tài liệu |
-| 5d | System | Tải file tài liệu về máy Admin |
+| 5c | Admin | Nhấn "Tải về" → System tải file về máy Admin |
 
-> AF-42.c: Hồ sơ Sponsor có mã số thuế (triggered at Step 4)
+##### AF-42.c: Hồ sơ Sponsor có mã số thuế
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
 | 4a | System | Hiển thị mã số thuế của doanh nghiệp |
-| 4b | Admin | Đối chiếu MST thủ công với nguồn bên ngoài hệ thống |
+| 4b | Admin | Đối chiếu MST thủ công với nguồn bên ngoài |
 
-> AF-42.d: Hồ sơ đã từng bị xử lý trước đó (triggered at Step 6)
-
-| Step | Actor / System | Action |
-|------|----------------|--------|
-| 6a | System | Hiển thị lịch sử: lần gửi trước + quyết định (REJECTED/INFO_REQUIRED) + lý do + lần gửi hiện tại |
-
-> AF-42.e: Hồ sơ đã được cập nhật trong khi PENDING_REVIEW (triggered at Step 3)
+##### AF-42.d: Hồ sơ đã từng bị xử lý trước đó
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
-| 3a | System | Phát hiện hồ sơ có cờ "đã cập nhật kể từ lần gửi cuối" |
-| 3b | System | Hiển thị badge/indicator "Hồ sơ đã được cập nhật" |
-| 3c | System | Hiển thị danh sách các trường đã thay đổi (field-level diff) với giá trị cũ → giá trị mới |
-| 3d | Admin | Xem nhanh các thay đổi để đánh giá mà không cần so sánh thủ công |
+| 6a | System | Hiển thị lịch sử: lần gửi trước + quyết định + lý do + lần gửi hiện tại |
+
+##### AF-42.e: Hồ sơ đã được cập nhật trong khi PENDING_REVIEW
+
+| Step | Actor / System | Action |
+|------|----------------|--------|
+| 3a | System | Hiển thị badge "Hồ sơ đã được cập nhật" |
+| 3b | System | Hiển thị field-level diff (giá trị cũ → giá trị mới) |
+
+#### 2.3 Exception Flows
+
+##### EF-42.1: Hồ sơ không tồn tại
+
+| Step | Actor / System | Action |
+|------|----------------|--------|
+| 2a | System | Hiển thị "Hồ sơ không tồn tại hoặc đã bị xóa" |
+| 2b | System | Chuyển Admin quay lại danh sách (UC-41) |
 
 ---
 
-**Exception Flows**
+### 3. Subflows
 
-> EF-42.1: Hồ sơ không tồn tại (triggered at Step 2)
-
-| Step | Actor / System | Action |
-|------|----------------|--------|
-| 2a | System | Không tìm thấy hồ sơ xác thực với ID được yêu cầu |
-| 2b | System | Hiển thị "Hồ sơ không tồn tại hoặc đã bị xóa" |
-| 2c | System | Chuyển Admin quay lại danh sách (UC-41) |
+None.
 
 ---
 
-**Postconditions**
+### 4. Key Scenarios
 
-*Success:*
+| Scenario ID | Name | Description |
+|-------------|------|-------------|
+| SC-42-01 | Xem chi tiết hồ sơ | Admin xem thông tin, tài liệu, và lịch sử xác thực |
+| SC-42-02 | Hồ sơ có cập nhật | Admin thấy badge "đã cập nhật" và field-level diff (AF-42.e) |
 
-- Admin đã xem đầy đủ thông tin hồ sơ xác thực
+---
+
+### 5. Preconditions
+
+#### 5.1 Admin đã xác thực
+
+- Admin đã đăng nhập với vai trò `admin`
+
+#### 5.2 Hồ sơ tồn tại
+
+- Hồ sơ xác thực tồn tại trong hệ thống
+
+---
+
+### 6. Postconditions
+
+#### 6.1 Success
+
+- Admin đã xem đầy đủ thông tin hồ sơ
 - Admin sẵn sàng ra quyết định: phê duyệt (UC-43), từ chối (UC-44), hoặc yêu cầu bổ sung (UC-45)
 
-*Failure:*
+#### 6.2 Failure
 
-- Không hiển thị được chi tiết hồ sơ
-- Admin quay lại danh sách hồ sơ
-
----
-
-**Business Rules**
-
-- BR-1002: Admin phải có quyền xem và tải về tất cả tài liệu minh chứng. Lịch sử xác thực hiển thị TẤT CẢ lần gửi/xử lý theo thứ tự thời gian. Nếu hồ sơ được cập nhật trong khi PENDING_REVIEW, hiển thị field-level diff cho Admin
+- Không hiển thị được; Admin quay lại danh sách
 
 ---
 
-**Notes / Assumptions**
+### 7. Extension Points
 
-- Việc kiểm tra MST doanh nghiệp được thực hiện THỦ CÔNG — Admin đối chiếu bên ngoài hệ thống
-- UC-42 là base UC cho ba extend: UC-43 (Phê duyệt), UC-44 (Từ chối), UC-45 (Yêu cầu bổ sung)
-- Liên kết: UC-41 (<<include>> từ danh sách), UC-43, UC-44, UC-45 (<<extend>>)
-- Khi hồ sơ có cờ "đã cập nhật": Admin thấy ngay danh sách trường thay đổi (field-level diff) để phê duyệt nhanh hơn
+| # | Extension Point | Extending UC | Điều kiện |
+|---|----------------|--------------|-----------|
+| 1 | Admin quyết định phê duyệt | UC-43: Phê duyệt hồ sơ tổ chức | Admin nhấn "Phê duyệt" |
+| 2 | Admin quyết định từ chối | UC-44: Từ chối hồ sơ tổ chức | Admin nhấn "Từ chối" |
+| 3 | Admin yêu cầu bổ sung | UC-45: Yêu cầu bổ sung thông tin | Admin nhấn "Yêu cầu bổ sung" |
+
+---
+
+### 8. Special Requirements
+
+None identified.
+
+---
+
+### 9. Business Rules
+
+- BR-1002: Admin phải có quyền xem và tải về tất cả tài liệu minh chứng. Lịch sử xác thực hiển thị TẤT CẢ lần gửi/xử lý. Nếu hồ sơ cập nhật trong PENDING_REVIEW, hiển thị field-level diff
+
+---
+
+### 10. Additional Information
+
+**Assumptions:**
+
+- Kiểm tra MST được thực hiện THỦ CÔNG bên ngoài hệ thống
+
+**Related Use Cases:**
+
+- UC-41: Xem danh sách hồ sơ (`<<include>>` — từ danh sách)
+- UC-43: Phê duyệt hồ sơ (`<<extend>>`)
+- UC-44: Từ chối hồ sơ (`<<extend>>`)
+- UC-45: Yêu cầu bổ sung (`<<extend>>`)

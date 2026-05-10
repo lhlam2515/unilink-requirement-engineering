@@ -1,11 +1,8 @@
-# UC-27: Xác nhận hoàn thành nghĩa vụ
-
-**Brief Description**
-> Authenticated User (bên đối tác — không phải bên thực hiện) xác nhận hoặc từ chối rằng nghĩa vụ đã được hoàn thành đúng cam kết, dựa trên bằng chứng đã nộp. Xác nhận chuyển nghĩa vụ sang CONFIRMED; từ chối chuyển sang DISPUTED cho phép bên thực hiện nộp lại.
+# Use-Case Specification: UC-27 — Xác nhận hoàn thành nghĩa vụ
 
 ---
 
-**Actors**
+### Actors
 
 | Role | Actor | Notes |
 |------|-------|-------|
@@ -14,23 +11,21 @@
 
 ---
 
-**Preconditions**
+### 1. Brief Description
 
-- Actor đã đăng nhập vào hệ thống
-- Nghĩa vụ đang ở trạng thái SUBMITTED
-- Actor là bên ĐỐI TÁC (không phải bên thực hiện nghĩa vụ)
+> Authenticated User (bên đối tác — không phải bên thực hiện) xác nhận hoặc từ chối rằng nghĩa vụ đã được hoàn thành đúng cam kết, dựa trên bằng chứng đã nộp. Xác nhận chuyển nghĩa vụ sang CONFIRMED; từ chối chuyển sang DISPUTED cho phép bên thực hiện nộp lại.
 
 ---
+
+### 2. Flow of Events
 
 **Trigger**
 > Bên đối tác nhấn "Xác nhận" hoặc "Từ chối" trên nghĩa vụ đã có bằng chứng SUBMITTED.
 
----
+#### 2.1 Basic Flow — Xác nhận
 
-**Main Flow (Basic Path) — Xác nhận**
-
-| Step | Actor | Action / System Response |
-|------|-------|--------------------------| 
+| Step | Actor / System | Action |
+|------|----------------|--------|
 | 1 | Authenticated User | Mở chi tiết nghĩa vụ đang ở trạng thái SUBMITTED |
 | 2 | System | Hiển thị bằng chứng: mô tả, file đính kèm (cho phép tải về và xem) |
 | 3 | Authenticated User | Kiểm tra bằng chứng |
@@ -39,11 +34,11 @@
 | 6 | System | Gửi thông báo cho bên thực hiện "Nghĩa vụ [tên] đã được xác nhận hoàn thành" |
 | 7 | System | Use case kết thúc thành công |
 
----
+#### 2.2 Alternate Flows
 
-**Alternate Flows**
-
-> AF-27.a: Từ chối xác nhận (triggered at Step 4)
+##### AF-27.a: Từ chối xác nhận
+>
+> *Triggered at Step 4 of the Basic Flow when bên đối tác chọn từ chối.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
@@ -55,11 +50,11 @@
 | 4f | System | Bên thực hiện có thể nộp bằng chứng mới (quay lại UC-26) |
 | 4g | System | Use case kết thúc |
 
----
+#### 2.3 Exception Flows
 
-**Exception Flows**
-
-> EF-27.1: Actor là bên thực hiện (triggered at Step 1)
+##### EF-27.1: Actor là bên thực hiện
+>
+> *Triggered at Step 1 of the Basic Flow when actor cố tự xác nhận.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
@@ -68,29 +63,81 @@
 
 ---
 
-**Postconditions**
+### 3. Subflows
 
-*Success (Xác nhận):*
+None.
+
+---
+
+### 4. Key Scenarios
+
+| Scenario ID | Name | Description |
+|-------------|------|-------------|
+| SC-27-01 | Xác nhận hoàn thành | Bên đối tác xác nhận; nghĩa vụ CONFIRMED |
+| SC-27-02 | Từ chối xác nhận | Bên đối tác từ chối kèm lý do; nghĩa vụ DISPUTED (AF-27.a) |
+
+---
+
+### 5. Preconditions
+
+#### 5.1 Actor đã xác thực
+
+- Actor đã đăng nhập vào hệ thống
+
+#### 5.2 Nghĩa vụ đang SUBMITTED
+
+- Nghĩa vụ đang ở trạng thái SUBMITTED
+
+#### 5.3 Actor là bên đối tác
+
+- Actor là bên ĐỐI TÁC (không phải bên thực hiện nghĩa vụ)
+
+---
+
+### 6. Postconditions
+
+#### 6.1 Success (Xác nhận)
+
 - Nghĩa vụ chuyển sang CONFIRMED
 - Bên thực hiện được thông báo
 
-*Success (Từ chối):*
+#### 6.2 Success (Từ chối)
+
 - Nghĩa vụ chuyển sang DISPUTED
 - Bên thực hiện được thông báo kèm lý do, có thể nộp bằng chứng mới
 
-*Failure:*
+#### 6.3 Failure
+
 - Nghĩa vụ không thay đổi
 
 ---
 
-**Business Rules**
+### 7. Extension Points
+
+None identified.
+
+---
+
+### 8. Special Requirements
+
+None identified.
+
+---
+
+### 9. Business Rules
 
 - BR-0603: Chỉ BÊN ĐỐI TÁC mới có quyền xác nhận/từ chối. Organizer xác nhận nghĩa vụ Sponsor, Sponsor xác nhận nghĩa vụ Organizer. Lý do từ chối BẮT BUỘC
 
 ---
 
-**Notes / Assumptions**
+### 10. Additional Information
+
+**Assumptions:**
 
 - Cơ chế kiểm soát chéo: ngăn tự xác nhận
 - Nghĩa vụ DISPUTED cho phép nộp lại bằng chứng mới (UC-26)
-- Liên kết: UC-25, UC-26
+
+**Related Use Cases:**
+
+- UC-25: Theo dõi trạng thái nghĩa vụ (`<<extend>>` base — UC-27 mở rộng UC-25)
+- UC-26: Nộp bằng chứng hoàn thành nghĩa vụ (sequential — bằng chứng phải tồn tại)

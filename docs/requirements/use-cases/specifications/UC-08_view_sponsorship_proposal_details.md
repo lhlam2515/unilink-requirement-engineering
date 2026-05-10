@@ -1,11 +1,8 @@
-# UC-08: Xem chi tiết hồ sơ tài trợ sự kiện
-
-**Brief Description**
-> Sponsor xem toàn bộ thông tin chi tiết của một hồ sơ tài trợ sự kiện đã phát hành, bao gồm thông tin sự kiện, gói tài trợ, quyền lợi nhà tài trợ, và hình ảnh nhận diện.
+# Use-Case Specification: UC-08 — Xem chi tiết hồ sơ tài trợ sự kiện
 
 ---
 
-**Actors**
+### Actors
 
 | Role | Actor | Notes |
 |------|-------|-------|
@@ -14,22 +11,21 @@
 
 ---
 
-**Preconditions**
+### 1. Brief Description
 
-- Sponsor đã đăng nhập vào hệ thống với vai trò `sponsor`
-- Hồ sơ tài trợ đang ở trạng thái PUBLISHED
+> Sponsor xem toàn bộ thông tin chi tiết của một hồ sơ tài trợ sự kiện đã phát hành, bao gồm thông tin sự kiện, gói tài trợ, quyền lợi nhà tài trợ, và hình ảnh nhận diện.
 
 ---
+
+### 2. Flow of Events
 
 **Trigger**
 > Sponsor nhấn vào một sự kiện trong danh sách kết quả tìm kiếm (UC-06) hoặc truy cập bằng đường dẫn trực tiếp.
 
----
+#### 2.1 Basic Flow
 
-**Main Flow (Basic Path)**
-
-| Step | Actor | Action / System Response |
-|------|-------|--------------------------| 
+| Step | Actor / System | Action |
+|------|----------------|--------|
 | 1 | Sponsor | Chọn một sự kiện từ danh sách kết quả tìm kiếm |
 | 2 | System | Truy xuất hồ sơ tài trợ và kiểm tra trạng thái PUBLISHED |
 | 3 | System | Hiển thị thông tin cơ bản: tên sự kiện, loại hình, thời gian, địa điểm |
@@ -39,17 +35,15 @@
 | 7 | System | Hiển thị danh sách gói tài trợ với quyền lợi tương ứng |
 | 8 | System | Use case kết thúc thành công — sponsor thấy đầy đủ thông tin hồ sơ |
 
----
-
-**Alternate Flows**
+#### 2.2 Alternate Flows
 
 Không có alternate flow cho use case này.
 
----
+#### 2.3 Exception Flows
 
-**Exception Flows**
-
-> EF-08.1: Hồ sơ không ở trạng thái PUBLISHED (triggered at Step 2)
+##### EF-08.1: Hồ sơ không ở trạng thái PUBLISHED
+>
+> *Triggered at Step 2 of the Basic Flow when hồ sơ ở trạng thái DRAFT hoặc không tồn tại.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
@@ -59,24 +53,75 @@ Không có alternate flow cho use case này.
 
 ---
 
-**Postconditions**
+### 3. Subflows
 
-*Success:*
+None.
+
+---
+
+### 4. Key Scenarios
+
+| Scenario ID | Name | Description |
+|-------------|------|-------------|
+| SC-08-01 | Xem chi tiết thành công | Sponsor chọn hồ sơ PUBLISHED và xem đầy đủ thông tin sự kiện, gói tài trợ, quyền lợi |
+| SC-08-02 | Hồ sơ không khả dụng | Hồ sơ ở trạng thái DRAFT hoặc không tồn tại; truy cập không thành công (EF-08.1) |
+
+---
+
+### 5. Preconditions
+
+#### 5.1 Sponsor đã xác thực
+
+- Sponsor đã đăng nhập vào hệ thống với vai trò `sponsor`
+
+#### 5.2 Hồ sơ đang PUBLISHED
+
+- Hồ sơ tài trợ đang ở trạng thái PUBLISHED
+
+---
+
+### 6. Postconditions
+
+#### 6.1 Success
+
 - Sponsor xem được toàn bộ thông tin chi tiết hồ sơ tài trợ
 
-*Failure:*
+#### 6.2 Failure
+
 - Sponsor không thể xem hồ sơ và được thông báo lý do
 
 ---
 
-**Business Rules**
+### 7. Extension Points
+
+| # | Extension Point | Extending UC | Điều kiện |
+|---|----------------|--------------|-----------|
+| 1 | Sau khi sponsor xem chi tiết hồ sơ tài trợ | UC-10: Lưu hồ sơ quan tâm | Sponsor muốn lưu hồ sơ vào danh sách quan tâm |
+| 2 | Sau khi sponsor xem chi tiết hồ sơ tài trợ | UC-11: Gửi lời mời tài trợ | Sponsor muốn gửi lời mời tài trợ đến BTC |
+
+---
+
+### 8. Special Requirements
+
+None identified.
+
+---
+
+### 9. Business Rules
 
 - BR-0204: Actor chỉ có thể xem chi tiết hồ sơ đã phát hành. Truy cập hồ sơ DRAFT bằng đường dẫn trực tiếp bị từ chối
 
 ---
 
-**Notes / Assumptions**
+### 10. Additional Information
+
+**Assumptions:**
 
 - Sponsor có thể bookmark hồ sơ từ trang chi tiết (UC-10)
 - Sponsor có thể gửi lời mời tài trợ từ trang chi tiết (UC-11)
-- Liên kết: UC-06, UC-10, UC-11
+
+**Related Use Cases:**
+
+- UC-06: Tìm kiếm sự kiện để tài trợ (`<<include>>` — UC-06 bao gồm UC-08)
+- UC-10: Lưu hồ sơ quan tâm (`<<extend>>` — bookmark từ trang chi tiết)
+- UC-11: Gửi lời mời tài trợ (`<<extend>>` — gửi lời mời từ trang chi tiết)

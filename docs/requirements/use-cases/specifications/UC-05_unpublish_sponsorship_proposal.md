@@ -1,11 +1,8 @@
-# UC-05: Hủy phát hành hồ sơ tài trợ
-
-**Brief Description**
-> Organizer hủy phát hành một hồ sơ tài trợ đang ở trạng thái PUBLISHED. Hệ thống kiểm tra điều kiện cho phép hủy theo BR-0109: nếu chưa có Deal liên kết (chưa bắt đầu thương thảo), hồ sơ sẽ được chuyển về trạng thái DRAFT, xóa khỏi chỉ mục tìm kiếm, và gửi thông báo theo BR-0110.
+# Use-Case Specification: UC-05 — Hủy phát hành hồ sơ tài trợ
 
 ---
 
-**Actors**
+### Actors
 
 | Role | Actor | Notes |
 |------|-------|-------|
@@ -14,23 +11,21 @@
 
 ---
 
-**Preconditions**
+### 1. Brief Description
 
-- Organizer đã đăng nhập vào hệ thống với vai trò `organizer`
-- Hồ sơ tài trợ đang ở trạng thái PUBLISHED
-- Organizer là tài khoản đại diện của tổ chức BTC sở hữu hồ sơ
+> Organizer hủy phát hành một hồ sơ tài trợ đang ở trạng thái PUBLISHED. Hệ thống kiểm tra điều kiện cho phép hủy theo BR-0109: nếu chưa có Deal liên kết (chưa bắt đầu thương thảo), hồ sơ sẽ được chuyển về trạng thái DRAFT, xóa khỏi chỉ mục tìm kiếm, và gửi thông báo theo BR-0110.
 
 ---
+
+### 2. Flow of Events
 
 **Trigger**
 > Organizer nhấn "Hủy phát hành" trên trang quản lý hồ sơ tài trợ.
 
----
+#### 2.1 Basic Flow
 
-**Main Flow (Basic Path)**
-
-| Step | Actor | Action / System Response |
-|------|-------|--------------------------|
+| Step | Actor / System | Action |
+|------|----------------|--------|
 | 1 | Organizer | Nhấn "Hủy phát hành" trên hồ sơ đang PUBLISHED |
 | 2 | System | Kiểm tra hồ sơ chưa có Deal nào liên kết từ các lời mời tài trợ đã chấp nhận (BR-0109) |
 | 3 | System | Kiểm tra hồ sơ không có lời mời tài trợ đang ở trạng thái SENT/PENDING |
@@ -42,18 +37,20 @@
 | 9 | System | Thông báo cho các doanh nghiệp đã bookmark hồ sơ rằng hồ sơ không còn khả dụng (BR-0110) |
 | 10 | System | Use case kết thúc thành công — hồ sơ đã ẩn khỏi trang tìm kiếm |
 
----
+#### 2.2 Alternate Flows
 
-**Alternate Flows**
-
-> AF-05.a: Organizer hủy thao tác (triggered at Step 4)
+##### AF-05.a: Organizer hủy thao tác
+>
+> *Triggered at Step 4 of the Basic Flow when organizer không xác nhận.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
 | 4a | Organizer | Nhấn "Hủy" trong dialog xác nhận |
 | 4b | System | Giữ nguyên trạng thái PUBLISHED, không thay đổi gì. Use case kết thúc |
 
-> AF-05.b: Hồ sơ có lời mời SENT/PENDING nhưng chưa có Deal liên kết (triggered at Step 3)
+##### AF-05.b: Hồ sơ có lời mời SENT/PENDING nhưng chưa có Deal liên kết
+>
+> *Triggered at Step 3 of the Basic Flow when phát hiện lời mời đang chờ.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
@@ -67,11 +64,11 @@
 | 3h | System | Thông báo cho các doanh nghiệp đã bookmark hồ sơ (BR-0110) |
 | 3i | System | Use case kết thúc thành công |
 
----
+#### 2.3 Exception Flows
 
-**Exception Flows**
-
-> EF-05.1: Hồ sơ đã có Deal liên kết (triggered at Step 2)
+##### EF-05.1: Hồ sơ đã có Deal liên kết
+>
+> *Triggered at Step 2 of the Basic Flow when hồ sơ đã bắt đầu thương thảo.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
@@ -81,30 +78,84 @@
 
 ---
 
-**Postconditions**
+### 3. Subflows
 
-*Success:*
+None.
+
+---
+
+### 4. Key Scenarios
+
+| Scenario ID | Name | Description |
+|-------------|------|-------------|
+| SC-05-01 | Hủy phát hành thành công | Hồ sơ PUBLISHED chưa có lời mời hoặc deal liên kết; chuyển về DRAFT, không còn khả dụng trên trang tìm kiếm |
+| SC-05-02 | Hủy khi có lời mời đang chờ | Hồ sơ có lời mời SENT/PENDING nhưng chưa tạo deal; organizer xác nhận hủy, các lời mời mất hiệu lực (AF-05.b) |
+| SC-05-03 | Hủy bị chặn do có deal liên kết | Hồ sơ đã có deal đang hoạt động; hủy phát hành không được phép (EF-05.1) |
+| SC-05-04 | Organizer hủy bỏ thao tác | Organizer không xác nhận hủy phát hành; hồ sơ giữ nguyên PUBLISHED (AF-05.a) |
+
+---
+
+### 5. Preconditions
+
+#### 5.1 Organizer đã xác thực
+
+- Organizer đã đăng nhập vào hệ thống với vai trò `organizer`
+
+#### 5.2 Hồ sơ đang PUBLISHED
+
+- Hồ sơ tài trợ đang ở trạng thái PUBLISHED
+
+#### 5.3 Quyền sở hữu
+
+- Organizer là tài khoản đại diện của tổ chức BTC sở hữu hồ sơ
+
+---
+
+### 6. Postconditions
+
+#### 6.1 Success
+
 - Hồ sơ tài trợ chuyển về trạng thái DRAFT
 - Hồ sơ không còn xuất hiện trong kết quả tìm kiếm
 - Các bookmark liên quan được đánh dấu "không khả dụng"
 - Doanh nghiệp đã bookmark được thông báo (BR-0110)
 - Nếu có lời mời SENT/PENDING: bên gửi lời mời được thông báo lời mời không còn hiệu lực (BR-0110)
 
-*Failure:*
+#### 6.2 Failure
+
 - Hồ sơ vẫn ở trạng thái PUBLISHED
 - Organizer được thông báo lý do không thể hủy phát hành
 
 ---
 
-**Business Rules**
+### 7. Extension Points
+
+None identified.
+
+---
+
+### 8. Special Requirements
+
+None identified.
+
+---
+
+### 9. Business Rules
 
 - BR-0109: Hồ sơ tài trợ KHÔNG THỂ hủy phát hành nếu đã có ít nhất một Deal liên kết được tạo từ lời mời tài trợ đã chấp nhận (đã bắt đầu thương thảo)
 - BR-0110: Khi hủy phát hành thành công, hệ thống PHẢI gửi thông báo phản hồi: (1) cho các doanh nghiệp đã bookmark hồ sơ, (2) cho bên gửi các lời mời tài trợ SENT/PENDING chưa có Deal. Nội dung PHẢI nêu rõ hồ sơ đã hủy phát hành và lời mời không còn hiệu lực
 
 ---
 
-**Notes / Assumptions**
+### 10. Additional Information
+
+**Assumptions:**
 
 - Hồ sơ quay về DRAFT có thể được chỉnh sửa (UC-02, UC-03) và phát hành lại (UC-04)
 - Bookmark của doanh nghiệp được giữ lại nhưng đánh dấu "không khả dụng" (BR-0205)
-- Liên kết: UC-04, UC-10, UC-11
+
+**Related Use Cases:**
+
+- UC-04: Phát hành hồ sơ tài trợ (prerequisite — hồ sơ phải ở PUBLISHED)
+- UC-10: Lưu hồ sơ quan tâm (impact — bookmark bị đánh dấu "không khả dụng")
+- UC-11: Gửi lời mời tài trợ (impact — lời mời SENT/PENDING mất hiệu lực)

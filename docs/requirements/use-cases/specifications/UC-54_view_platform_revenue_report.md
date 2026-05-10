@@ -1,11 +1,8 @@
-# UC-54: Xem báo cáo doanh thu nền tảng
-
-**Brief Description**
-> Admin xem báo cáo tổng hợp doanh thu phí dịch vụ của nền tảng theo khoảng thời gian. Báo cáo bao gồm tổng thu, tổng hoàn tiền, doanh thu ròng, và danh sách chi tiết các giao dịch phí.
+# Use-Case Specification: UC-54 — Xem báo cáo doanh thu nền tảng
 
 ---
 
-**Actors**
+### Actors
 
 | Role | Actor | Notes |
 |------|-------|-------|
@@ -14,67 +11,108 @@
 
 ---
 
-**Preconditions**
+### 1. Brief Description
 
-- Admin đã đăng nhập với quyền quản trị
-- Có ít nhất một PlatformRevenueLog trong hệ thống
+> Admin xem báo cáo tổng hợp doanh thu phí dịch vụ của nền tảng theo khoảng thời gian. Báo cáo bao gồm tổng thu, tổng hoàn tiền, doanh thu ròng, và danh sách chi tiết các giao dịch phí.
 
 ---
+
+### 2. Flow of Events
 
 **Trigger**
 > Admin truy cập trang "Báo cáo doanh thu nền tảng".
 
----
-
-**Main Flow (Basic Path)**
-
-| Step | Actor | Action / System Response |
-|------|-------|--------------------------|
-| 1 | Admin | Truy cập trang "Báo cáo doanh thu nền tảng" |
-| 2 | System | Hiển thị báo cáo mặc định cho tháng hiện tại |
-| 3 | System | Hiển thị tổng quan: Tổng thu (INCOME), Tổng hoàn tiền (REFUND), Doanh thu ròng |
-| 4 | System | Hiển thị danh sách giao dịch chi tiết: deal ID, bên nộp, số tiền, loại (INCOME/REFUND), ngày |
-| 5 | Admin | Có thể lọc theo: khoảng thời gian, loại giao dịch, vai trò bên nộp (Organizer/Sponsor) |
-| 6 | System | Cập nhật báo cáo theo bộ lọc |
-| 7 | System | Use case kết thúc thành công |
-
----
-
-**Alternate Flows**
-
-> AF-54.a: Không có giao dịch trong khoảng thời gian (triggered at Step 2)
+#### 2.1 Basic Flow
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
-| 2a | System | Phát hiện không có giao dịch trong khoảng thời gian đã chọn |
-| 2b | System | Hiển thị empty state: "Chưa có giao dịch phí dịch vụ trong khoảng thời gian này" |
-| 2c | System | Hiển thị tổng quan = 0 |
+| 1 | Admin | Truy cập trang "Báo cáo doanh thu nền tảng" |
+| 2 | System | Hiển thị báo cáo mặc định cho tháng hiện tại |
+| 3 | System | Hiển thị tổng quan: Tổng thu (INCOME), Tổng hoàn tiền (REFUND), Doanh thu ròng |
+| 4 | System | Hiển thị danh sách giao dịch: deal ID, bên nộp, số tiền, loại, ngày |
+| 5 | Admin | Lọc theo: khoảng thời gian, loại giao dịch, vai trò bên nộp |
+| 6 | System | Cập nhật báo cáo theo bộ lọc |
+| 7 | System | Use case kết thúc thành công |
 
----
+#### 2.2 Alternate Flows
 
-**Exception Flows**
+##### AF-54.a: Không có giao dịch trong khoảng thời gian
+>
+> *Triggered at Step 2 of the Basic Flow when không có dữ liệu.*
+
+| Step | Actor / System | Action |
+|------|----------------|--------|
+| 2a | System | Hiển thị empty state, tổng quan = 0 |
+
+#### 2.3 Exception Flows
 
 Không có exception flow đặc biệt cho use case này.
 
 ---
 
-**Postconditions**
+### 3. Subflows
 
-*Success:*
-- Admin nhìn thấy báo cáo doanh thu với dữ liệu chính xác
-- Không có thay đổi dữ liệu — chỉ hiển thị thông tin
+None.
 
 ---
 
-**Business Rules**
+### 4. Key Scenarios
+
+| Scenario ID | Name | Description |
+|-------------|------|-------------|
+| SC-54-01 | Xem doanh thu tháng | Admin xem tổng quan và chi tiết giao dịch tháng hiện tại |
+| SC-54-02 | Lọc theo khoảng thời gian | Admin lọc báo cáo theo tùy chọn |
+
+---
+
+### 5. Preconditions
+
+#### 5.1 Admin đã xác thực
+
+- Admin đã đăng nhập với quyền quản trị
+
+---
+
+### 6. Postconditions
+
+#### 6.1 Success
+
+- Admin xem được báo cáo doanh thu chính xác
+- Không có thay đổi dữ liệu — chỉ hiển thị
+
+#### 6.2 Failure
+
+- Không áp dụng (use case chỉ đọc dữ liệu)
+
+---
+
+### 7. Extension Points
+
+None identified.
+
+---
+
+### 8. Special Requirements
+
+None identified.
+
+---
+
+### 9. Business Rules
 
 - BR-1404: Mọi ServiceFeeTransaction chuyển trạng thái PHẢI được ghi vào PlatformRevenueLog
 - Doanh thu ròng = Σ INCOME − Σ REFUND
 
 ---
 
-**Notes / Assumptions**
+### 10. Additional Information
 
-- Báo cáo mang tính tham chiếu, không thay thế phần mềm kế toán chính thức
-- Không hỗ trợ xuất file (CSV/Excel) ở phiên bản đầu — có thể bổ sung
-- Liên kết: UC-50 (thanh toán phí → ghi revenue log), UC-55 (đối soát thủ công)
+**Assumptions:**
+
+- Báo cáo mang tính tham chiếu, không thay thế phần mềm kế toán
+- Không hỗ trợ xuất file (CSV/Excel) ở phiên bản đầu
+
+**Related Use Cases:**
+
+- UC-50: Thanh toán phí dịch vụ (sequential — ghi revenue log)
+- UC-55: Đối soát thủ công (sequential — ảnh hưởng doanh thu)

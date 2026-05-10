@@ -1,11 +1,8 @@
-# UC-03: Quản lý gói tài trợ
-
-**Brief Description**
-> Organizer tạo, chỉnh sửa và quản lý các gói tài trợ (sponsorship packages) trong hồ sơ tài trợ sự kiện. Mỗi gói bao gồm cấp độ tài trợ, giá trị tối thiểu, số lượng slot, và danh sách quyền lợi nhà tài trợ tương ứng.
+# Use-Case Specification: UC-03 — Quản lý gói tài trợ
 
 ---
 
-**Actors**
+### Actors
 
 | Role | Actor | Notes |
 |------|-------|-------|
@@ -14,23 +11,21 @@
 
 ---
 
-**Preconditions**
+### 1. Brief Description
 
-- Organizer đã đăng nhập vào hệ thống với vai trò `organizer`
-- Hồ sơ tài trợ đã tồn tại và đang ở trạng thái DRAFT hoặc PUBLISHED
-- Organizer là tài khoản đại diện duy nhất của tổ chức BTC sở hữu hồ sơ
+> Organizer tạo, chỉnh sửa và quản lý các gói tài trợ (sponsorship packages) trong hồ sơ tài trợ sự kiện. Mỗi gói bao gồm cấp độ tài trợ, giá trị tối thiểu, số lượng slot, và danh sách quyền lợi nhà tài trợ tương ứng.
 
 ---
+
+### 2. Flow of Events
 
 **Trigger**
 > Organizer chọn "Thêm gói tài trợ" hoặc chọn chỉnh sửa gói tài trợ hiện có trên trang quản lý hồ sơ tài trợ.
 
----
+#### 2.1 Basic Flow
 
-**Main Flow (Basic Path)**
-
-| Step | Actor | Action / System Response |
-|------|-------|--------------------------|
+| Step | Actor / System | Action |
+|------|----------------|--------|
 | 1 | Organizer | Chọn "Thêm gói tài trợ" trên trang chỉnh sửa hồ sơ |
 | 2 | System | Hiển thị form tạo gói tài trợ |
 | 3 | Organizer | Nhập thông tin gói: tên gói, cấp độ (Title/Co-Sponsor/Associate/Technical/Partner), mô tả, giá trị tài trợ tối thiểu, số lượng slot khả dụng |
@@ -43,11 +38,11 @@
 | 10 | Organizer | Lặp lại Steps 6-9 để thêm các quyền lợi khác (nếu cần) |
 | 11 | System | Use case kết thúc thành công — gói tài trợ và quyền lợi đã được tạo |
 
----
+#### 2.2 Alternate Flows
 
-**Alternate Flows**
-
-> AF-03.a: Organizer chỉnh sửa gói tài trợ hiện có (triggered at Step 1)
+##### AF-03.a: Organizer chỉnh sửa gói tài trợ hiện có
+>
+> *Triggered at Step 1 of the Basic Flow when organizer chọn gói hiện có.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
@@ -56,7 +51,9 @@
 | 1c | Organizer | Cập nhật thông tin gói (tên, cấp độ, giá trị, slot) |
 | 1d | System | Xác thực và lưu thay đổi. Tiếp tục tại Step 6 nếu muốn chỉnh sửa quyền lợi |
 
-> AF-03.b: Organizer xóa gói tài trợ (triggered at Step 1)
+##### AF-03.b: Organizer xóa gói tài trợ
+>
+> *Triggered at Step 1 of the Basic Flow when organizer chọn xóa gói.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
@@ -65,7 +62,9 @@
 | 1c | Organizer | Xác nhận xóa |
 | 1d | System | Xóa gói tài trợ và toàn bộ quyền lợi liên quan. Use case kết thúc |
 
-> AF-03.c: Organizer chỉnh sửa hoặc xóa quyền lợi (triggered at Step 6)
+##### AF-03.c: Organizer chỉnh sửa hoặc xóa quyền lợi
+>
+> *Triggered at Step 6 of the Basic Flow when organizer chỉnh sửa/xóa quyền lợi hiện có.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
@@ -74,11 +73,11 @@
 | 6c | System | Nếu xóa: yêu cầu xác nhận và xóa quyền lợi khỏi gói |
 | 6d | System | Lưu thay đổi. Use case kết thúc hoặc tiếp tục chỉnh sửa |
 
----
+#### 2.3 Exception Flows
 
-**Exception Flows**
-
-> EF-03.1: Tên gói tài trợ trùng lặp (triggered at Step 4)
+##### EF-03.1: Tên gói tài trợ trùng lặp
+>
+> *Triggered at Step 4 of the Basic Flow when tên gói đã tồn tại.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
@@ -86,7 +85,9 @@
 | 4b | System | Hiển thị thông báo lỗi "Tên gói tài trợ đã tồn tại. Vui lòng chọn tên khác." |
 | 4c | Organizer | Nhập tên gói khác và thử lưu lại |
 
-> EF-03.2: Giá trị tối thiểu hoặc slot không hợp lệ (triggered at Step 4)
+##### EF-03.2: Giá trị tối thiểu hoặc slot không hợp lệ
+>
+> *Triggered at Step 4 of the Basic Flow when giá trị ≤ 0 hoặc slot < 1.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
@@ -96,29 +97,83 @@
 
 ---
 
-**Postconditions**
+### 3. Subflows
 
-*Success:*
+None.
+
+---
+
+### 4. Key Scenarios
+
+| Scenario ID | Name | Description |
+|-------------|------|-------------|
+| SC-03-01 | Tạo gói mới kèm quyền lợi | Organizer định nghĩa gói tài trợ mới và gắn danh sách quyền lợi tương ứng |
+| SC-03-02 | Chỉnh sửa gói hiện có | Organizer cập nhật thông tin hoặc quyền lợi của gói đã tạo (AF-03.a, AF-03.c) |
+| SC-03-03 | Xóa gói tài trợ | Organizer xóa gói cùng toàn bộ quyền lợi liên quan sau khi xác nhận (AF-03.b) |
+| SC-03-04 | Tên gói trùng lặp | Organizer tạo gói có tên đã tồn tại trong hồ sơ; gói không được tạo (EF-03.1) |
+
+---
+
+### 5. Preconditions
+
+#### 5.1 Organizer đã xác thực
+
+- Organizer đã đăng nhập vào hệ thống với vai trò `organizer`
+
+#### 5.2 Hồ sơ tài trợ tồn tại
+
+- Hồ sơ tài trợ đã tồn tại và đang ở trạng thái DRAFT hoặc PUBLISHED
+
+#### 5.3 Quyền sở hữu
+
+- Organizer là tài khoản đại diện duy nhất của tổ chức BTC sở hữu hồ sơ
+
+---
+
+### 6. Postconditions
+
+#### 6.1 Success
+
 - Gói tài trợ với package_id duy nhất đã được tạo/cập nhật trong hồ sơ
 - Quyền lợi nhà tài trợ đã được gắn vào gói
 - Hồ sơ đã cập nhật danh sách gói tài trợ
 
-*Failure:*
+#### 6.2 Failure
+
 - Gói tài trợ không được tạo hoặc cập nhật
 - Organizer được thông báo lỗi cụ thể
 
 ---
 
-**Business Rules**
+### 7. Extension Points
+
+None identified.
+
+---
+
+### 8. Special Requirements
+
+None identified.
+
+---
+
+### 9. Business Rules
 
 - BR-0106: Mỗi gói tài trợ PHẢI có tên duy nhất trong phạm vi hồ sơ, giá trị tối thiểu > 0, và số slot ≥ 1. Hồ sơ PHẢI có ít nhất một gói trước khi phát hành
 - BR-0107: Mỗi quyền lợi PHẢI thuộc một trong các nhóm: BRANDING, STAGE, DIGITAL, ENGAGEMENT. Mỗi quyền lợi PHẢI có mô tả cam kết thực hiện cụ thể
 
 ---
 
-**Notes / Assumptions**
+### 10. Additional Information
+
+**Assumptions:**
 
 - Organizer có thể tạo nhiều gói tài trợ cho một hồ sơ
 - Gói tài trợ chưa có quyền lợi sẽ được cảnh báo khi phát hành (UC-04)
 - Cấp độ gói: Title Sponsor, Co-Sponsor, Associate Sponsor, Technical Sponsor, Sponsorship Partner
-- Liên kết: UC-01, UC-02, UC-04
+
+**Related Use Cases:**
+
+- UC-01: Tạo hồ sơ tài trợ sự kiện (prerequisite — hồ sơ phải tồn tại)
+- UC-02: Chỉnh sửa nội dung hồ sơ tài trợ (parallel — cùng soạn thảo hồ sơ)
+- UC-04: Phát hành hồ sơ tài trợ (sequential — sau khi gói tài trợ đầy đủ)

@@ -1,11 +1,8 @@
-# UC-36: Đăng nhập hệ thống
-
-**Brief Description**
-> Guest đăng nhập vào hệ thống UniLink bằng email/mật khẩu hoặc qua Google OAuth. Hệ thống xác thực thông tin đăng nhập, tạo phiên làm việc (session), và chuyển đến trang chính phù hợp với vai trò. Hệ thống áp dụng cơ chế bảo vệ chống brute-force khi đăng nhập sai nhiều lần.
+# Use-Case Specification: UC-36 — Đăng nhập hệ thống
 
 ---
 
-**Actors**
+### Actors
 
 | Role | Actor | Notes |
 |------|-------|-------|
@@ -15,22 +12,21 @@
 
 ---
 
-**Preconditions**
+### 1. Brief Description
 
-- Guest đã có tài khoản trên hệ thống UniLink
-- Guest chưa đăng nhập (chưa có session hợp lệ)
+> Guest đăng nhập vào hệ thống UniLink bằng email/mật khẩu hoặc qua Google OAuth. Hệ thống xác thực thông tin đăng nhập, tạo phiên làm việc (session), và chuyển đến trang chính phù hợp với vai trò. Hệ thống áp dụng cơ chế bảo vệ chống brute-force khi đăng nhập sai nhiều lần.
 
 ---
+
+### 2. Flow of Events
 
 **Trigger**
 > Guest truy cập trang đăng nhập và nhấn "Đăng nhập".
 
----
+#### 2.1 Basic Flow
 
-**Main Flow (Basic Path)**
-
-| Step | Actor | Action / System Response |
-|------|-------|--------------------------|
+| Step | Actor / System | Action |
+|------|----------------|--------|
 | 1 | Guest | Nhập email và mật khẩu trên form đăng nhập |
 | 2 | Guest | Nhấn "Đăng nhập" |
 | 3 | System | Xác thực email và mật khẩu với thông tin trong hệ thống |
@@ -40,11 +36,11 @@
 | 7 | System | Chuyển Guest (nay là Authenticated User) đến trang chính phù hợp với vai trò |
 | 8 | System | Use case kết thúc thành công — phiên đăng nhập đã được tạo |
 
----
+#### 2.2 Alternate Flows
 
-**Alternate Flows**
-
-> AF-36.a: Đăng nhập bằng Google OAuth (triggered at Step 1)
+##### AF-36.a: Đăng nhập bằng Google OAuth
+>
+> *Triggered at Step 1 of the Basic Flow when guest chọn "Tiếp tục bằng Google".*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
@@ -56,11 +52,11 @@
 | 1f | System | Tạo session_token cho phiên làm việc |
 | 1g | System | Chuyển đến trang chính phù hợp với vai trò — use case kết thúc |
 
----
+#### 2.3 Exception Flows
 
-**Exception Flows**
-
-> EF-36.1: Email hoặc mật khẩu không chính xác (triggered at Step 3)
+##### EF-36.1: Email hoặc mật khẩu không chính xác
+>
+> *Triggered at Step 3 of the Basic Flow when thông tin đăng nhập sai.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
@@ -69,7 +65,9 @@
 | 3c | System | Hiển thị thông báo "Email hoặc mật khẩu không chính xác" (không tiết lộ email có tồn tại hay không) |
 | 3d | Guest | Có thể nhập lại hoặc chọn "Quên mật khẩu" (UC-37) |
 
-> EF-36.2: Tài khoản bị tạm khóa do đăng nhập sai (triggered at Step 4)
+##### EF-36.2: Tài khoản bị tạm khóa do đăng nhập sai
+>
+> *Triggered at Step 4 of the Basic Flow when tài khoản đang bị tạm khóa.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
@@ -77,7 +75,9 @@
 | 4b | System | Hiển thị "Tài khoản tạm thời bị khóa, vui lòng thử lại sau [X] phút" |
 | 4c | Guest | Chờ hết thời gian khóa hoặc sử dụng "Quên mật khẩu" (UC-37) |
 
-> EF-36.3: Đăng nhập sai quá số lần cho phép (triggered at Step 3)
+##### EF-36.3: Đăng nhập sai quá số lần cho phép
+>
+> *Triggered at Step 3 of the Basic Flow when failed_login_attempts đạt 5.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
@@ -85,14 +85,18 @@
 | 3f | System | Khóa tài khoản trong 15 phút (set locked_until) |
 | 3g | System | Hiển thị "Tài khoản đã bị khóa tạm thời do đăng nhập sai quá nhiều lần" |
 
-> EF-36.4: Google OAuth thất bại (triggered at AF-36.a, Step 1d)
+##### EF-36.4: Google OAuth thất bại
+>
+> *Triggered at AF-36.a Step 1d when nhận phản hồi lỗi từ Google.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
 | 1d-a | System | Nhận phản hồi lỗi từ Google hoặc Guest hủy xác thực |
 | 1d-b | System | Hiển thị "Đăng nhập bằng Google không thành công, vui lòng thử lại" |
 
-> EF-36.5: Email Google không liên kết với tài khoản (triggered at AF-36.a, Step 1e)
+##### EF-36.5: Email Google không liên kết với tài khoản
+>
+> *Triggered at AF-36.a Step 1e when email Google chưa có tài khoản.*
 
 | Step | Actor / System | Action |
 |------|----------------|--------|
@@ -101,16 +105,45 @@
 
 ---
 
-**Postconditions**
+### 3. Subflows
 
-*Success:*
+None.
+
+---
+
+### 4. Key Scenarios
+
+| Scenario ID | Name | Description |
+|-------------|------|-------------|
+| SC-36-01 | Đăng nhập email thành công | Guest đăng nhập bằng email/mật khẩu hợp lệ |
+| SC-36-02 | Đăng nhập Google thành công | Guest đăng nhập qua Google OAuth (AF-36.a) |
+| SC-36-03 | Đăng nhập sai quá 5 lần | Tài khoản bị tạm khóa 15 phút (EF-36.3) |
+| SC-36-04 | Email Google chưa có tài khoản | Chuyển sang đăng ký mới UC-35 (EF-36.5) |
+
+---
+
+### 5. Preconditions
+
+#### 5.1 Đã có tài khoản
+
+- Guest đã có tài khoản trên hệ thống UniLink
+
+#### 5.2 Chưa đăng nhập
+
+- Guest chưa đăng nhập (chưa có session hợp lệ)
+
+---
+
+### 6. Postconditions
+
+#### 6.1 Success
 
 - Phiên đăng nhập (session_token) đã được tạo
 - last_login_at đã được cập nhật
 - failed_login_attempts đã được reset về 0
 - Authenticated User ở trang chính phù hợp với vai trò
 
-*Failure:*
+#### 6.2 Failure
 
 - Không có phiên đăng nhập nào được tạo
 - Guest được thông báo về lỗi (không tiết lộ thông tin nhạy cảm)
@@ -118,15 +151,34 @@
 
 ---
 
-**Business Rules**
+### 7. Extension Points
+
+None identified.
+
+---
+
+### 8. Special Requirements
+
+None identified.
+
+---
+
+### 9. Business Rules
 
 - BR-0805: Sau 5 lần đăng nhập sai liên tiếp, tài khoản bị TẠM KHÓA 15 phút. Bộ đếm reset khi đăng nhập thành công hoặc hết thời gian khóa
 
 ---
 
-**Notes / Assumptions**
+### 10. Additional Information
+
+**Assumptions:**
 
 - Hệ thống KHÔNG tiết lộ email có tồn tại hay không khi đăng nhập sai — biện pháp bảo mật chống enumeration
 - Đăng nhập qua Google (AF-36.a) được xử lý như alternate flow, không phải UC riêng vì cùng mục tiêu "tạo phiên đăng nhập"
 - Nếu email Google chưa có tài khoản, hệ thống tự động chuyển sang luồng đăng ký (UC-35)
-- Liên kết: UC-34, UC-35, UC-37
+
+**Related Use Cases:**
+
+- UC-34: Đăng ký tài khoản bằng email (prerequisite — tài khoản phải tồn tại)
+- UC-35: Đăng ký tài khoản bằng Google (prerequisite hoặc redirect từ EF-36.5)
+- UC-37: Đặt lại mật khẩu (sequential — khi quên mật khẩu)
